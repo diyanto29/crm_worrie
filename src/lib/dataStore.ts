@@ -46,155 +46,15 @@ const DEFAULT_TEMPLATES: MessageTemplate[] = [
   },
 ];
 
-const DEFAULT_CAMPAIGNS: Campaign[] = [
-  {
-    id: 'camp-1',
-    name: 'Klinik Gigi & Dental Jaksel',
-    keyword: 'Klinik Gigi',
-    location: 'Jakarta Selatan',
-    max_results: 20,
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'camp-2',
-    name: 'Cafe & Resto Aesthetic Bandung',
-    keyword: 'Cafe aesthetic',
-    location: 'Bandung',
-    max_results: 15,
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
-export const DEFAULT_PROFILES: UserProfile[] = [
-  {
-    id: 'user-asep',
-    full_name: 'Asep Gustiawan',
-    email: 'asep@worrie.id',
-    role: 'superadmin',
-    phone: '081234567890',
-    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-    is_active: true,
-    created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
-  },
-  {
-    id: 'user-budi',
-    full_name: 'Budi Santoso',
-    email: 'budi.santoso@worrie.id',
-    role: 'admin',
-    phone: '081398765432',
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
-    is_active: true,
-    created_at: new Date(Date.now() - 86400000 * 20).toISOString(),
-  },
-  {
-    id: 'user-siti',
-    full_name: 'Siti Aisyah',
-    email: 'siti.aisyah@worrie.id',
-    role: 'marketing',
-    phone: '081122334455',
-    avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80',
-    is_active: true,
-    created_at: new Date(Date.now() - 86400000 * 15).toISOString(),
-  },
-  {
-    id: 'user-rian',
-    full_name: 'Rian Pratama',
-    email: 'rian.pratama@worrie.id',
-    role: 'marketing',
-    phone: '085678901234',
-    avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80',
-    is_active: true,
-    created_at: new Date(Date.now() - 86400000 * 10).toISOString(),
-  },
-];
-
-const DEFAULT_LEADS: Lead[] = [
-  {
-    id: 'lead-1',
-    campaign_id: 'camp-1',
-    business_name: 'Drg. Senyum Sehat Dental Care',
-    address: 'Jl. Fatmawati Raya No. 42, Cilandak, Jakarta Selatan',
-    phone: '081234567890',
-    rating: 4.8,
-    reviews_count: 142,
-    has_website: false,
-    website_url: null,
-    gmaps_url: 'https://maps.google.com/?q=Drg.+Senyum+Sehat+Dental+Care',
-    status: 'Belum dihubungi',
-    deal_value: 0,
-    assigned_to: 'Asep Gustiawan',
-    notes: 'Klinik ramai tapi belum punya website pemesanan janji temu.',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'lead-2',
-    campaign_id: 'camp-1',
-    business_name: 'South Smiles Aesthetic Dentistry',
-    address: 'Jl. Senopati No. 88, Kebayoran Baru, Jakarta Selatan',
-    phone: '081398765432',
-    rating: 4.9,
-    reviews_count: 230,
-    has_website: true,
-    website_url: 'https://southsmilesdental.com',
-    gmaps_url: 'https://maps.google.com/?q=South+Smiles+Aesthetic',
-    status: 'Follow Up',
-    deal_value: 2500000,
-    assigned_to: 'Budi Santoso',
-    notes: 'Sudah ada website lama, tertarik redesign dan integrasi WhatsApp booking.',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'lead-3',
-    campaign_id: 'camp-1',
-    business_name: 'Praktek Dokter Gigi Kemang Family',
-    address: 'Jl. Kemang Raya No. 12, Bangka, Jakarta Selatan',
-    phone: '081122334455',
-    rating: 4.7,
-    reviews_count: 88,
-    has_website: false,
-    website_url: null,
-    gmaps_url: 'https://maps.google.com/?q=Praktek+Dokter+Gigi+Kemang',
-    status: 'Closing',
-    deal_value: 3500000,
-    assigned_to: 'Siti Aisyah',
-    notes: 'Deal paket Web Custom + Google Maps SEO. DP 50% sudah diterima.',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'lead-4',
-    campaign_id: 'camp-2',
-    business_name: 'Kopi Ruang Tenang Bandung',
-    address: 'Jl. Riau No. 105, Bandung',
-    phone: '085678901234',
-    rating: 4.6,
-    reviews_count: 312,
-    has_website: false,
-    website_url: null,
-    gmaps_url: 'https://maps.google.com/?q=Kopi+Ruang+Tenang+Bandung',
-    status: 'Dihubungi',
-    deal_value: 1200000,
-    assigned_to: 'Rian Pratama',
-    notes: 'Pesan WA sudah dibaca, pemilik meminta dikirimkan pricelist.',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: 'lead-5',
-    campaign_id: 'camp-2',
-    business_name: 'Dago Forest Eatery & Coffee',
-    address: 'Jl. Ir. H. Juanda No. 340, Dago, Bandung',
-    phone: '087788990011',
-    rating: 4.5,
-    reviews_count: 95,
-    has_website: true,
-    website_url: 'https://dagoforesteatery.co.id',
-    gmaps_url: 'https://maps.google.com/?q=Dago+Forest+Eatery',
-    status: 'Ditolak',
-    deal_value: 0,
-    assigned_to: null,
-    notes: 'Sudah ada tim in-house marketing.',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
+const DEFAULT_CAMPAIGNS: Campaign[] = [];
+export const DEFAULT_PROFILES: UserProfile[] = [];
+const DEFAULT_LEADS: Lead[] = [];
+const DEFAULT_PROSPECTS: CampaignProspect[] = [];
+const DEFAULT_CONTACTS: LeadContact[] = [];
+const DEFAULT_QUOTATIONS: Quotation[] = [];
+const DEFAULT_QUOTATION_ITEMS: QuotationItem[] = [];
+const DEFAULT_ACTIVITIES: LeadActivity[] = [];
+const DEFAULT_TASKS: LeadTask[] = [];
 
 const DEFAULT_SETTINGS: AppSettings = {
   id: 'setting-1',
@@ -208,204 +68,28 @@ const DEFAULT_SETTINGS: AppSettings = {
   updated_at: new Date().toISOString(),
 };
 
-const DEFAULT_PROSPECTS: CampaignProspect[] = [
-  {
-    id: 'prospect-1',
-    campaign_id: 'camp-1',
-    business_name: 'SMK Negeri 1 Jakarta (Pusat Kejuruan Bisnis & TI)',
-    category: 'Sekolah Menengah Kejuruan',
-    address: 'Jl. Budi Utomo No. 7, Sawah Besar, Jakarta Pusat',
-    phone: '081298765432',
-    rating: 4.8,
-    reviews_count: 98,
-    has_website: true,
-    website_url: 'https://smkn1jakarta.sch.id',
-    gmaps_url: 'https://maps.google.com/?q=SMKN+1+Jakarta',
-    prospect_score: 95,
-    curation_status: 'draft',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'prospect-2',
-    campaign_id: 'camp-1',
-    business_name: 'SMA Labschool Kebayoran Jakarta',
-    category: 'Sekolah Menengah Atas',
-    address: 'Jl. KH. Ahmad Dahlan No. 14, Kebayoran Baru, Jakarta Selatan',
-    phone: '081345678901',
-    rating: 4.9,
-    reviews_count: 145,
-    has_website: true,
-    website_url: 'https://labschool-unj.sch.id',
-    gmaps_url: 'https://maps.google.com/?q=Labschool+Kebayoran',
-    prospect_score: 92,
-    curation_status: 'draft',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'prospect-3',
-    campaign_id: 'camp-1',
-    business_name: 'SMK Taruna Bhakti Depok',
-    category: 'Sekolah Menengah Kejuruan',
-    address: 'Jl. Pekapuran No. 1, Curug, Cimanggis, Depok',
-    phone: '081199887766',
-    rating: 4.7,
-    reviews_count: 210,
-    has_website: true,
-    website_url: 'https://smktarunabhakti.net',
-    gmaps_url: 'https://maps.google.com/?q=SMK+Taruna+Bhakti',
-    prospect_score: 89,
-    curation_status: 'reviewed',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'prospect-4',
-    campaign_id: 'camp-2',
-    business_name: 'SMK Telkom Bandung',
-    category: 'Sekolah Menengah Kejuruan',
-    address: 'Jl. Radio Palasari, Dayeuhkolot, Bandung',
-    phone: '082155667788',
-    rating: 4.9,
-    reviews_count: 180,
-    has_website: true,
-    website_url: 'https://smktelkom-bdg.sch.id',
-    gmaps_url: 'https://maps.google.com/?q=SMK+Telkom+Bandung',
-    prospect_score: 96,
-    curation_status: 'converted',
-    converted_lead_id: 'lead-1',
-    converted_at: new Date(Date.now() - 86400000).toISOString(),
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
+// Pembersih cache data dummy lama di browser (Auto-Purge Total)
+function purgeAllLegacyOfflineCache(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('gmap_prospek_')) {
+        keysToRemove.push(k);
+      }
+    }
+    for (const k of keysToRemove) {
+      localStorage.removeItem(k);
+    }
+  } catch {}
+}
 
-const DEFAULT_CONTACTS: LeadContact[] = [
-  {
-    id: 'cont-1',
-    lead_id: 'lead-1',
-    name: 'Dr. H. Bambang Sutrisno, M.Pd',
-    role: 'Owner',
-    phone: '081234567890',
-    email: 'bambang.s@institusi.sch.id',
-    is_primary: true,
-    notes: 'Kepala Sekolah - Pembuat keputusan akhir MOU kemitraan',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'cont-2',
-    lead_id: 'lead-1',
-    name: 'Ibu Ratna Dewi, S.Psi',
-    role: 'Staff Operasional',
-    phone: '081299887766',
-    email: 'ratna.bk@institusi.sch.id',
-    is_primary: false,
-    notes: 'Koordinator Bimbingan Konseling (BK) untuk seminar karir digital',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'cont-3',
-    lead_id: 'lead-1',
-    name: 'Pak Dimas Anggoro, S.Kom',
-    role: 'Manajer Marketing',
-    phone: '081388776655',
-    email: 'humas@institusi.sch.id',
-    is_primary: false,
-    notes: 'Ketua Hubungan Industri (Hubin) & Humas',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-];
+if (typeof window !== 'undefined') {
+  purgeAllLegacyOfflineCache();
+}
 
-const DEFAULT_QUOTATIONS: Quotation[] = [
-  {
-    id: 'quot-1',
-    lead_id: 'lead-1',
-    quote_number: 'Q-WORRIE/2026/X/001',
-    title: 'Paket Kemitraan Seminar & Bootcamp Digital Remote Work 2026',
-    status: 'sent',
-    subtotal: 8500000,
-    discount: 1000000,
-    tax: 0,
-    grand_total: 7500000,
-    valid_until: '2026-11-30',
-    terms_conditions: 'DP 50% setelah penandatanganan MOU kemitraan, sisa 50% H-3 pelaksanaan.',
-    notes: 'Termasuk sertifikat resmi Worrie.id, modul materi PDF, dan akses LMS 6 bulan untuk 150 siswa.',
-    created_by: 'Tim Kemitraan Worrie.id',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
-const DEFAULT_QUOTATION_ITEMS: QuotationItem[] = [
-  {
-    id: 'qi-1',
-    quotation_id: 'quot-1',
-    item_name: 'Workshop Intensive: Remote Work Readiness & Global Portfolio',
-    description: 'Pelatihan 2 hari offline/hybrid: LinkedIn profile, Upwork/Fiverr setup, portfolio digital',
-    qty: 1,
-    unit_price: 5000000,
-    total_price: 5000000,
-    sort_order: 1,
-  },
-  {
-    id: 'qi-2',
-    quotation_id: 'quot-1',
-    item_name: 'Seminar Inspiratif: Peluang Karir Internasional dari Rumah',
-    description: 'Sesi stadium general untuk 150 siswa & guru pembimbing',
-    qty: 1,
-    unit_price: 3500000,
-    total_price: 3500000,
-    sort_order: 2,
-  },
-];
-
-const DEFAULT_ACTIVITIES: LeadActivity[] = [
-  {
-    id: 'act-1',
-    lead_id: 'lead-1',
-    activity_type: 'converted_from_draft',
-    title: 'Prospek Dikonversi dari Draft Hasil Screening',
-    description: 'Prospek disetujui masuk ke pipeline aktif CRM setelah verifikasi nomor WA.',
-    actor_name: 'Admin Worrie',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'act-2',
-    lead_id: 'lead-1',
-    activity_type: 'contact_added',
-    title: 'Kontak A Ditambahkan: Dr. H. Bambang Sutrisno (Kepala Sekolah)',
-    description: 'Kontak utama ditambahkan dengan nomor WA 081234567890.',
-    actor_name: 'Admin Worrie',
-    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'act-3',
-    lead_id: 'lead-1',
-    activity_type: 'whatsapp_sent',
-    title: 'WhatsApp Pengantar Proposal Terkirim',
-    description: 'Mengirimkan surat pengantar program kemitraan edukasi digital remote work.',
-    actor_name: 'Marketing Worrie',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: 'act-4',
-    lead_id: 'lead-1',
-    activity_type: 'quotation_created',
-    title: 'Quotation Q-WORRIE/2026/X/001 Diterbitkan',
-    description: 'Penawaran paket kemitraan seminar & bootcamp senilai Rp 7.500.000 diterbitkan.',
-    actor_name: 'Admin Worrie',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
-const DEFAULT_TASKS: LeadTask[] = [
-  {
-    id: 'task-1',
-    lead_id: 'lead-1',
-    title: 'Follow-up telepon ke Bu Ratna (Guru BK) untuk jadwal presentasi online',
-    due_date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-    is_completed: false,
-    created_at: new Date().toISOString(),
-  },
-];
-
-// Local storage helper
+// Local storage helper (Hanya untuk fallback offline darurat saat env Supabase tidak disetel)
 function getLocal<T>(key: string, defaultValue: T): T {
   if (typeof window === 'undefined') return defaultValue;
   try {
@@ -428,63 +112,55 @@ function setLocal<T>(key: string, value: T): void {
 export const DataStore = {
   isCloud: isSupabaseConfigured,
 
-  // CAMPAIGNS
-  // CAMPAIGNS
+  // CAMPAIGNS (Pure Supabase Online)
   async getCampaigns(): Promise<Campaign[]> {
-    let cloudCampaigns: Campaign[] = [];
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
           .from('campaigns')
-          .select('*, leads(count)')
+          .select('*, leads(count), campaign_prospects(count)')
           .order('created_at', { ascending: false });
         if (!error && data) {
-          cloudCampaigns = data.map((item: any) => ({
+          return data.map((item: any) => ({
             ...item,
             leads_count: item.leads?.[0]?.count || 0,
+            prospects_count: item.campaign_prospects?.[0]?.count || 0,
           }));
         }
+        if (error) {
+          console.error('Supabase getCampaigns error:', error);
+        }
+        return [];
       } catch (e) {
-        console.warn('Falling back to local campaigns', e);
+        console.error('Supabase getCampaigns exception:', e);
+        return [];
       }
     }
 
-    const localCampaigns = getLocal<Campaign[]>('campaigns', DEFAULT_CAMPAIGNS);
-    const localLeads = getLocal<Lead[]>('leads', DEFAULT_LEADS);
-    const localProspects = getLocal<CampaignProspect[]>('campaign_prospects', DEFAULT_PROSPECTS);
-
-    // Merge: Include cloud campaigns, plus any local campaigns not present in cloud
-    const cloudIds = new Set(cloudCampaigns.map((c) => c.id));
-    const merged: Campaign[] = [...cloudCampaigns];
-
-    for (const lc of localCampaigns) {
-      if (!cloudIds.has(lc.id)) {
-        merged.push({
-          ...lc,
-          leads_count: localLeads.filter((l) => l.campaign_id === lc.id).length,
-          prospects_count: localProspects.filter((p) => p.campaign_id === lc.id).length,
-        });
-      }
-    }
-
-    // Ensure accurate counts from local
-    return merged.map((c) => {
-      const localCount = localLeads.filter((l) => l.campaign_id === c.id).length;
-      const localProspectCount = localProspects.filter((p) => p.campaign_id === c.id).length;
-      return {
-        ...c,
-        leads_count: Math.max(c.leads_count || 0, localCount),
-        prospects_count: Math.max(c.prospects_count || 0, localProspectCount),
-      };
-    });
+    return getLocal<Campaign[]>('campaigns', DEFAULT_CAMPAIGNS);
   },
 
   async getCampaignById(id: string): Promise<Campaign | null> {
-    const campaigns = await this.getCampaigns();
-    const found = campaigns.find((c) => c.id === id);
-    if (found) return found;
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('campaigns')
+          .select('*, leads(count), campaign_prospects(count)')
+          .eq('id', id)
+          .single();
+        if (!error && data) {
+          return {
+            ...data,
+            leads_count: data.leads?.[0]?.count || 0,
+            prospects_count: data.campaign_prospects?.[0]?.count || 0,
+          };
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    }
 
-    // Fallback directly to local storage
     const localCampaigns = getLocal<Campaign[]>('campaigns', DEFAULT_CAMPAIGNS);
     return localCampaigns.find((c) => c.id === id) || null;
   },
@@ -495,10 +171,6 @@ export const DataStore = {
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `camp-${Date.now()}`,
       created_at: new Date().toISOString(),
     };
-
-    // Save to local storage first for instant reliability
-    const current = getLocal<Campaign[]>('campaigns', DEFAULT_CAMPAIGNS);
-    setLocal('campaigns', [newCampaign, ...current]);
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -511,10 +183,10 @@ export const DataStore = {
           return data;
         }
         if (error) {
-          console.warn('Supabase createCampaign error, using local:', error);
+          console.error('Supabase createCampaign error:', error);
         }
       } catch (e) {
-        console.warn('Falling back to local createCampaign', e);
+        console.error('Supabase createCampaign error:', e);
       }
     }
 
@@ -524,25 +196,20 @@ export const DataStore = {
   async deleteCampaign(id: string): Promise<boolean> {
     if (isSupabaseConfigured && supabase) {
       try {
+        await supabase.from('campaign_prospects').delete().eq('campaign_id', id);
+        await supabase.from('leads').delete().eq('campaign_id', id);
         await supabase.from('campaigns').delete().eq('id', id);
+        return true;
       } catch (e) {
-        console.warn('Supabase deleteCampaign error', e);
+        console.error('Supabase deleteCampaign error', e);
+        return false;
       }
     }
-    const current = getLocal<Campaign[]>('campaigns', DEFAULT_CAMPAIGNS);
-    setLocal('campaigns', current.filter((c) => c.id !== id));
-    
-    // Also remove leads associated with this campaign
-    const leads = getLocal<Lead[]>('leads', DEFAULT_LEADS);
-    setLocal('leads', leads.filter((l) => l.campaign_id !== id));
     return true;
   },
 
-  // LEADS
+  // LEADS (Pure Supabase Online)
   async getLeads(campaignId?: string): Promise<Lead[]> {
-    let cloudLeads: Lead[] = [];
-    let cloudHasData = false;
-
     if (isSupabaseConfigured && supabase) {
       try {
         let query = supabase.from('leads').select('*').order('created_at', { ascending: false });
@@ -550,37 +217,35 @@ export const DataStore = {
           query = query.eq('campaign_id', campaignId);
         }
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
-          cloudLeads = data.map(ensureLeadScore);
-          cloudHasData = true;
+        if (!error && data) {
+          return data.map(ensureLeadScore);
         }
+        if (error) {
+          console.error('Supabase getLeads error:', error);
+        }
+        return [];
       } catch (e) {
-        console.warn('Falling back to local leads', e);
+        console.error('Supabase getLeads exception:', e);
+        return [];
       }
     }
 
-    // Always inspect local leads
-    const localLeads = getLocal<Lead[]>('leads', DEFAULT_LEADS).map(ensureLeadScore);
-    const filteredLocal = campaignId ? localLeads.filter((l) => l.campaign_id === campaignId) : localLeads;
-
-    // If cloud has leads for this query, return cloud leads (plus any unique local ones)
-    if (cloudHasData) {
-      const cloudIds = new Set(cloudLeads.map((l) => l.id));
-      const extraLocal = filteredLocal.filter((l) => !cloudIds.has(l.id));
-      return [...cloudLeads, ...extraLocal];
-    }
-
-    // If cloud had 0 records or failed, use local leads
-    if (filteredLocal.length > 0) {
-      return filteredLocal;
-    }
-
-    return cloudLeads;
+    return [];
   },
 
   async getLeadById(id: string): Promise<Lead | null> {
-    const leads = await this.getLeads();
-    return leads.find((l) => l.id === id) || null;
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.from('leads').select('*').eq('id', id).single();
+        if (!error && data) {
+          return ensureLeadScore(data);
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
   },
 
   async createLeadsBulk(newLeads: Omit<Lead, 'id' | 'created_at'>[]): Promise<Lead[]> {
@@ -596,24 +261,18 @@ export const DataStore = {
       };
     });
 
-    // Save to local storage immediately so data is NEVER lost
-    const current = getLocal<Lead[]>('leads', DEFAULT_LEADS);
-    const updated = [...leadsWithMeta, ...current];
-    setLocal('leads', updated);
-
-    // Sync to Supabase in cloud (strip prospect_score because column is not in SQL schema)
     if (isSupabaseConfigured && supabase) {
       try {
         const supabasePayload = leadsWithMeta.map(({ prospect_score, ...rest }) => rest);
         const { data, error } = await supabase.from('leads').insert(supabasePayload).select();
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           return data.map(ensureLeadScore);
         }
         if (error) {
-          console.warn('Supabase createLeadsBulk error, using local copy:', error);
+          console.error('Supabase createLeadsBulk error:', error);
         }
       } catch (e) {
-        console.warn('Falling back to local createLeadsBulk', e);
+        console.error('Supabase createLeadsBulk error:', e);
       }
     }
 
@@ -656,32 +315,20 @@ export const DataStore = {
           .from('profiles')
           .select('*')
           .order('created_at', { ascending: true });
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           return data as UserProfile[];
         }
+        return [];
       } catch (err) {
-        console.warn('Failed to load team profiles from Supabase:', err);
+        console.error('Failed to load team profiles from Supabase:', err);
+        return [];
       }
     }
-    const local = getLocal<UserProfile[]>('crm_profiles', []);
-    if (local && local.length > 0) {
-      return local;
-    }
-    return DEFAULT_PROFILES;
+    return [];
   },
 
   async updateLead(id: string, updates: Partial<Lead>): Promise<Lead | null> {
     const { prospect_score, ...sanitizedUpdates } = updates;
-
-    // Update local storage
-    const current = getLocal<Lead[]>('leads', DEFAULT_LEADS);
-    const index = current.findIndex((l) => l.id === id);
-    let updatedLead: Lead | null = null;
-    if (index !== -1) {
-      updatedLead = ensureLeadScore({ ...current[index], ...updates });
-      current[index] = updatedLead;
-      setLocal('leads', current);
-    }
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -695,23 +342,27 @@ export const DataStore = {
           return ensureLeadScore(data);
         }
       } catch (e) {
-        console.warn('Falling back to local updateLead', e);
+        console.error('Supabase updateLead error', e);
       }
     }
 
-    return updatedLead;
+    return null;
   },
 
   async deleteLead(id: string): Promise<boolean> {
     if (isSupabaseConfigured && supabase) {
       try {
+        await supabase.from('lead_contacts').delete().eq('lead_id', id);
+        await supabase.from('lead_activities').delete().eq('lead_id', id);
+        await supabase.from('lead_tasks').delete().eq('lead_id', id);
+        await supabase.from('quotations').delete().eq('lead_id', id);
         await supabase.from('leads').delete().eq('id', id);
+        return true;
       } catch (e) {
-        console.warn('Supabase deleteLead error', e);
+        console.error('Supabase deleteLead error', e);
+        return false;
       }
     }
-    const current = getLocal<Lead[]>('leads', DEFAULT_LEADS);
-    setLocal('leads', current.filter((l) => l.id !== id));
     return true;
   },
 
@@ -723,12 +374,12 @@ export const DataStore = {
           .from('message_templates')
           .select('*')
           .order('created_at', { ascending: false });
-        if (!error && data) return data;
+        if (!error && data && data.length > 0) return data;
       } catch (e) {
-        console.warn('Falling back to local templates', e);
+        console.error('Supabase getTemplates error', e);
       }
     }
-    return getLocal<MessageTemplate[]>('templates', DEFAULT_TEMPLATES);
+    return DEFAULT_TEMPLATES;
   },
 
   async createTemplate(template: Omit<MessageTemplate, 'id' | 'created_at'>): Promise<MessageTemplate> {
@@ -743,13 +394,10 @@ export const DataStore = {
         const { data, error } = await supabase.from('message_templates').insert([newTmpl]).select().single();
         if (!error && data) return data;
       } catch (e) {
-        console.warn('Falling back to local createTemplate', e);
+        console.error('Supabase createTemplate error', e);
       }
     }
 
-    const current = getLocal<MessageTemplate[]>('templates', DEFAULT_TEMPLATES);
-    const updated = [newTmpl, ...current];
-    setLocal('templates', updated);
     return newTmpl;
   },
 
@@ -764,28 +412,22 @@ export const DataStore = {
           .single();
         if (!error && data) return data;
       } catch (e) {
-        console.warn('Falling back to local updateTemplate', e);
+        console.error('Supabase updateTemplate error', e);
       }
     }
 
-    const current = getLocal<MessageTemplate[]>('templates', DEFAULT_TEMPLATES);
-    const idx = current.findIndex(t => t.id === id);
-    if (idx === -1) return null;
-    current[idx] = { ...current[idx], ...updates };
-    setLocal('templates', current);
-    return current[idx];
+    return null;
   },
 
   async deleteTemplate(id: string): Promise<boolean> {
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.from('message_templates').delete().eq('id', id);
+        return true;
       } catch (e) {
-        console.warn('Supabase deleteTemplate error', e);
+        console.error('Supabase deleteTemplate error', e);
       }
     }
-    const current = getLocal<MessageTemplate[]>('templates', DEFAULT_TEMPLATES);
-    setLocal('templates', current.filter(t => t.id !== id));
     return true;
   },
 
@@ -796,10 +438,10 @@ export const DataStore = {
         const { data, error } = await supabase.from('app_settings').select('*').limit(1).single();
         if (!error && data) return data;
       } catch (e) {
-        console.warn('Falling back to local settings', e);
+        console.error('Supabase getSettings error', e);
       }
     }
-    return getLocal<AppSettings>('settings', DEFAULT_SETTINGS);
+    return DEFAULT_SETTINGS;
   },
 
   async updateSettings(settings: Partial<AppSettings>): Promise<AppSettings> {
@@ -825,19 +467,17 @@ export const DataStore = {
           if (data) return data;
         }
       } catch (e) {
-        console.warn('Falling back to local updateSettings', e);
+        console.error('Supabase updateSettings error', e);
       }
     }
 
-    setLocal('settings', updated);
     return updated;
   },
 
   // ==========================================
-  // 1. CAMPAIGN PROSPECTS (DRAFT LIST)
+  // 1. CAMPAIGN PROSPECTS (DRAFT LIST) - Pure Supabase Online
   // ==========================================
   async getCampaignProspects(campaignId?: string): Promise<CampaignProspect[]> {
-    let cloudProspects: CampaignProspect[] = [];
     if (isSupabaseConfigured && supabase) {
       try {
         let query = supabase
@@ -848,25 +488,17 @@ export const DataStore = {
           query = query.eq('campaign_id', campaignId);
         }
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
-          cloudProspects = data;
+        if (!error && data) {
+          return data;
         }
+        return [];
       } catch (e) {
-        console.warn('Falling back to local campaign prospects', e);
+        console.error('Supabase getCampaignProspects exception:', e);
+        return [];
       }
     }
 
-    const localProspects = getLocal<CampaignProspect[]>('campaign_prospects', DEFAULT_PROSPECTS);
-    const filteredLocal = campaignId
-      ? localProspects.filter((p) => p.campaign_id === campaignId)
-      : localProspects;
-
-    if (cloudProspects.length > 0) {
-      const cloudIds = new Set(cloudProspects.map((p) => p.id));
-      const extra = filteredLocal.filter((p) => !cloudIds.has(p.id));
-      return [...cloudProspects, ...extra];
-    }
-    return filteredLocal;
+    return [];
   },
 
   async createCampaignProspectsBulk(
@@ -881,20 +513,17 @@ export const DataStore = {
       created_at: new Date().toISOString(),
     }));
 
-    const current = getLocal<CampaignProspect[]>('campaign_prospects', DEFAULT_PROSPECTS);
-    setLocal('campaign_prospects', [...list, ...current]);
-
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
           .from('campaign_prospects')
           .insert(list)
           .select();
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           return data;
         }
       } catch (e) {
-        console.warn('Falling back to local createCampaignProspectsBulk', e);
+        console.error('Supabase createCampaignProspectsBulk error:', e);
       }
     }
 
@@ -906,19 +535,6 @@ export const DataStore = {
     curation_status: CurationStatus,
     reason?: string
   ): Promise<CampaignProspect | null> {
-    const current = getLocal<CampaignProspect[]>('campaign_prospects', DEFAULT_PROSPECTS);
-    const idx = current.findIndex((p) => p.id === prospectId);
-    let updated: CampaignProspect | null = null;
-    if (idx !== -1) {
-      current[idx] = {
-        ...current[idx],
-        curation_status,
-        disqualified_reason: reason || current[idx].disqualified_reason,
-      };
-      setLocal('campaign_prospects', current);
-      updated = current[idx];
-    }
-
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
@@ -932,10 +548,10 @@ export const DataStore = {
           .single();
         if (!error && data) return data;
       } catch (e) {
-        console.warn('Falling back to local updateProspectCuration', e);
+        console.error('Supabase updateProspectCuration error:', e);
       }
     }
-    return updated;
+    return null;
   },
 
   async convertProspectToPipeline(
@@ -996,7 +612,7 @@ export const DataStore = {
           })
           .eq('id', prospect.id);
       } catch (e) {
-        console.warn('Supabase update converted prospect error', e);
+        console.error('Supabase update converted prospect error', e);
       }
     }
 
@@ -1025,10 +641,9 @@ export const DataStore = {
   },
 
   // ==========================================
-  // 2. MULTI-CONTACTS (lead_contacts)
+  // 2. MULTI-CONTACTS (lead_contacts) - Pure Supabase Online
   // ==========================================
   async getLeadContacts(leadId: string): Promise<LeadContact[]> {
-    let cloudContacts: LeadContact[] = [];
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
@@ -1037,22 +652,16 @@ export const DataStore = {
           .eq('lead_id', leadId)
           .order('is_primary', { ascending: false });
         if (!error && data) {
-          cloudContacts = data;
+          return data;
         }
+        return [];
       } catch (e) {
-        console.warn('Falling back to local contacts', e);
+        console.error('Supabase getLeadContacts error:', e);
+        return [];
       }
     }
 
-    const localContacts = getLocal<LeadContact[]>('lead_contacts', DEFAULT_CONTACTS);
-    const filteredLocal = localContacts.filter((c) => c.lead_id === leadId);
-
-    if (cloudContacts.length > 0) {
-      const cloudIds = new Set(cloudContacts.map((c) => c.id));
-      const extra = filteredLocal.filter((c) => !cloudIds.has(c.id));
-      return [...cloudContacts, ...extra];
-    }
-    return filteredLocal;
+    return [];
   },
 
   async createLeadContact(
@@ -1090,18 +699,9 @@ export const DataStore = {
           return data;
         }
       } catch (e) {
-        console.warn('Falling back to local createLeadContact', e);
+        console.error('Supabase createLeadContact error:', e);
       }
     }
-
-    // Log Activity locally
-    await this.createLeadActivity({
-      lead_id: contact.lead_id,
-      activity_type: 'contact_added',
-      title: `Kontak Ditambahkan: ${contact.name} (${contact.role})`,
-      description: `Nomor telepon: ${contact.phone}${contact.email ? ` • Email: ${contact.email}` : ''}`,
-      actor_name: actorName,
-    });
 
     return newContact;
   },
@@ -1111,14 +711,7 @@ export const DataStore = {
     updates: Partial<LeadContact>,
     actorName: string = 'Tim Worrie'
   ): Promise<LeadContact | null> {
-    const current = getLocal<LeadContact[]>('lead_contacts', DEFAULT_CONTACTS);
-    const idx = current.findIndex((c) => c.id === id);
     let updated: LeadContact | null = null;
-    if (idx !== -1) {
-      current[idx] = { ...current[idx], ...updates, updated_at: new Date().toISOString() };
-      setLocal('lead_contacts', current);
-      updated = current[idx];
-    }
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -1130,7 +723,7 @@ export const DataStore = {
           .single();
         if (!error && data) updated = data;
       } catch (e) {
-        console.warn('Falling back to local updateLeadContact', e);
+        console.error('Supabase updateLeadContact error:', e);
       }
     }
 
@@ -1151,20 +744,19 @@ export const DataStore = {
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.from('lead_contacts').delete().eq('id', id);
+        return true;
       } catch (e) {
-        console.warn('Supabase deleteLeadContact error', e);
+        console.error('Supabase deleteLeadContact error:', e);
+        return false;
       }
     }
-    const current = getLocal<LeadContact[]>('lead_contacts', DEFAULT_CONTACTS);
-    setLocal('lead_contacts', current.filter((c) => c.id !== id));
     return true;
   },
 
   // ==========================================
-  // 3. QUOTATIONS & ITEMS
+  // 3. QUOTATIONS & ITEMS (Pure Supabase Online)
   // ==========================================
   async getQuotations(leadId: string): Promise<Quotation[]> {
-    let cloudQuotes: Quotation[] = [];
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
@@ -1173,29 +765,16 @@ export const DataStore = {
           .eq('lead_id', leadId)
           .order('created_at', { ascending: false });
         if (!error && data) {
-          cloudQuotes = data;
+          return data;
         }
+        return [];
       } catch (e) {
-        console.warn('Falling back to local quotations', e);
+        console.error('Supabase getQuotations error:', e);
+        return [];
       }
     }
 
-    const localQuotes = getLocal<Quotation[]>('quotations', DEFAULT_QUOTATIONS);
-    const localItems = getLocal<QuotationItem[]>('quotation_items', DEFAULT_QUOTATION_ITEMS);
-
-    const mergedLocal = localQuotes
-      .filter((q) => q.lead_id === leadId)
-      .map((q) => ({
-        ...q,
-        items: localItems.filter((i) => i.quotation_id === q.id),
-      }));
-
-    if (cloudQuotes.length > 0) {
-      const cloudIds = new Set(cloudQuotes.map((q) => q.id));
-      const extra = mergedLocal.filter((q) => !cloudIds.has(q.id));
-      return [...cloudQuotes, ...extra];
-    }
-    return mergedLocal;
+    return [];
   },
 
   async createQuotation(
@@ -1227,13 +806,6 @@ export const DataStore = {
       sort_order: idx + 1,
     }));
 
-    // Local Storage Save
-    const currentQuotes = getLocal<Quotation[]>('quotations', DEFAULT_QUOTATIONS);
-    setLocal('quotations', [newQuote, ...currentQuotes]);
-
-    const currentItems = getLocal<QuotationItem[]>('quotation_items', DEFAULT_QUOTATION_ITEMS);
-    setLocal('quotation_items', [...newItems, ...currentItems]);
-
     // Supabase Save
     if (isSupabaseConfigured && supabase) {
       try {
@@ -1248,7 +820,7 @@ export const DataStore = {
           }
         }
       } catch (e) {
-        console.warn('Falling back to local createQuotation', e);
+        console.error('Supabase createQuotation error:', e);
       }
     }
 
@@ -1275,14 +847,7 @@ export const DataStore = {
     status: QuotationStatus,
     actorName: string = 'Tim Worrie'
   ): Promise<Quotation | null> {
-    const current = getLocal<Quotation[]>('quotations', DEFAULT_QUOTATIONS);
-    const idx = current.findIndex((q) => q.id === quoteId);
     let updated: Quotation | null = null;
-    if (idx !== -1) {
-      current[idx] = { ...current[idx], status, updated_at: new Date().toISOString() };
-      setLocal('quotations', current);
-      updated = current[idx];
-    }
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -1294,7 +859,7 @@ export const DataStore = {
           .single();
         if (!error && data) updated = data;
       } catch (e) {
-        console.warn('Falling back to local updateQuotationStatus', e);
+        console.error('Supabase updateQuotationStatus error:', e);
       }
     }
 
@@ -1321,22 +886,19 @@ export const DataStore = {
       try {
         await supabase.from('quotation_items').delete().eq('quotation_id', quoteId);
         await supabase.from('quotations').delete().eq('id', quoteId);
+        return true;
       } catch (e) {
-        console.warn('Supabase deleteQuotation error', e);
+        console.error('Supabase deleteQuotation error:', e);
+        return false;
       }
     }
-    const currentQuotes = getLocal<Quotation[]>('quotations', DEFAULT_QUOTATIONS);
-    setLocal('quotations', currentQuotes.filter((q) => q.id !== quoteId));
-    const currentItems = getLocal<QuotationItem[]>('quotation_items', DEFAULT_QUOTATION_ITEMS);
-    setLocal('quotation_items', currentItems.filter((i) => i.quotation_id !== quoteId));
     return true;
   },
 
   // ==========================================
-  // 4. ACTIVITY TIMELINE (360° View)
+  // 4. ACTIVITY TIMELINE (360° View) - Pure Supabase Online
   // ==========================================
   async getLeadActivities(leadId: string): Promise<LeadActivity[]> {
-    let cloudActivities: LeadActivity[] = [];
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
@@ -1345,26 +907,16 @@ export const DataStore = {
           .eq('lead_id', leadId)
           .order('created_at', { ascending: false });
         if (!error && data) {
-          cloudActivities = data;
+          return data;
         }
+        return [];
       } catch (e) {
-        console.warn('Falling back to local activities', e);
+        console.error('Supabase getLeadActivities error:', e);
+        return [];
       }
     }
 
-    const localActivities = getLocal<LeadActivity[]>('lead_activities', DEFAULT_ACTIVITIES);
-    const filteredLocal = localActivities.filter((a) => a.lead_id === leadId);
-
-    if (cloudActivities.length > 0) {
-      const cloudIds = new Set(cloudActivities.map((a) => a.id));
-      const extra = filteredLocal.filter((a) => !cloudIds.has(a.id));
-      return [...cloudActivities, ...extra].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-    }
-    return filteredLocal.sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    return [];
   },
 
   async createLeadActivity(
@@ -1379,9 +931,6 @@ export const DataStore = {
       created_at: new Date().toISOString(),
     };
 
-    const current = getLocal<LeadActivity[]>('lead_activities', DEFAULT_ACTIVITIES);
-    setLocal('lead_activities', [newActivity, ...current]);
-
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
@@ -1391,7 +940,7 @@ export const DataStore = {
           .single();
         if (!error && data) return data;
       } catch (e) {
-        console.warn('Falling back to local createLeadActivity', e);
+        console.error('Supabase createLeadActivity error:', e);
       }
     }
 
@@ -1399,10 +948,9 @@ export const DataStore = {
   },
 
   // ==========================================
-  // 5. TASKS / FOLLOW-UP REMINDERS
+  // 5. TASKS / FOLLOW-UP REMINDERS - Pure Supabase Online
   // ==========================================
   async getLeadTasks(leadId: string): Promise<LeadTask[]> {
-    let cloudTasks: LeadTask[] = [];
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
@@ -1412,22 +960,16 @@ export const DataStore = {
           .order('is_completed', { ascending: true })
           .order('due_date', { ascending: true });
         if (!error && data) {
-          cloudTasks = data;
+          return data;
         }
+        return [];
       } catch (e) {
-        console.warn('Falling back to local tasks', e);
+        console.error('Supabase getLeadTasks error:', e);
+        return [];
       }
     }
 
-    const localTasks = getLocal<LeadTask[]>('lead_tasks', DEFAULT_TASKS);
-    const filteredLocal = localTasks.filter((t) => t.lead_id === leadId);
-
-    if (cloudTasks.length > 0) {
-      const cloudIds = new Set(cloudTasks.map((t) => t.id));
-      const extra = filteredLocal.filter((t) => !cloudIds.has(t.id));
-      return [...cloudTasks, ...extra];
-    }
-    return filteredLocal;
+    return [];
   },
 
   async createLeadTask(
@@ -1442,9 +984,6 @@ export const DataStore = {
           : `task-${Date.now()}`,
       created_at: new Date().toISOString(),
     };
-
-    const current = getLocal<LeadTask[]>('lead_tasks', DEFAULT_TASKS);
-    setLocal('lead_tasks', [newTask, ...current]);
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -1464,17 +1003,9 @@ export const DataStore = {
           return data;
         }
       } catch (e) {
-        console.warn('Falling back to local createLeadTask', e);
+        console.error('Supabase createLeadTask error:', e);
       }
     }
-
-    await this.createLeadActivity({
-      lead_id: task.lead_id,
-      activity_type: 'note_created',
-      title: `Pengingat Dibuat: ${task.title}`,
-      description: `Tenggat waktu: ${task.due_date}`,
-      actor_name: actorName,
-    });
 
     return newTask;
   },
@@ -1484,18 +1015,7 @@ export const DataStore = {
     is_completed: boolean,
     actorName: string = 'Tim Worrie'
   ): Promise<LeadTask | null> {
-    const current = getLocal<LeadTask[]>('lead_tasks', DEFAULT_TASKS);
-    const idx = current.findIndex((t) => t.id === taskId);
     let updated: LeadTask | null = null;
-    if (idx !== -1) {
-      current[idx] = {
-        ...current[idx],
-        is_completed,
-        completed_at: is_completed ? new Date().toISOString() : null,
-      };
-      setLocal('lead_tasks', current);
-      updated = current[idx];
-    }
 
     if (isSupabaseConfigured && supabase) {
       try {
@@ -1510,7 +1030,7 @@ export const DataStore = {
           .single();
         if (!error && data) updated = data;
       } catch (e) {
-        console.warn('Falling back to local toggleLeadTask', e);
+        console.error('Supabase toggleLeadTask error:', e);
       }
     }
 
@@ -1531,17 +1051,17 @@ export const DataStore = {
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.from('lead_tasks').delete().eq('id', taskId);
+        return true;
       } catch (e) {
-        console.warn('Supabase deleteLeadTask error', e);
+        console.error('Supabase deleteLeadTask error:', e);
+        return false;
       }
     }
-    const current = getLocal<LeadTask[]>('lead_tasks', DEFAULT_TASKS);
-    setLocal('lead_tasks', current.filter((t) => t.id !== taskId));
     return true;
   },
 
   // ==========================================
-  // 6. GLOBAL AGGREGATIONS & CROSS-LEAD QUERIES
+  // 6. GLOBAL AGGREGATIONS & CROSS-LEAD QUERIES (Pure Supabase Online)
   // ==========================================
   async getAllQuotations(): Promise<Array<Quotation & { lead?: Lead }>> {
     let cloudQuotes: Quotation[] = [];
@@ -1555,22 +1075,14 @@ export const DataStore = {
           cloudQuotes = data;
         }
       } catch (e) {
-        console.warn('Falling back to local quotations', e);
+        console.error('Supabase getAllQuotations error:', e);
       }
     }
 
-    const localQuotes = getLocal<Quotation[]>('quotations', DEFAULT_QUOTATIONS);
-    const localItems = getLocal<QuotationItem[]>('quotation_items', DEFAULT_QUOTATION_ITEMS);
-    const mergedLocal = localQuotes.map((q) => ({
-      ...q,
-      items: localItems.filter((i) => i.quotation_id === q.id),
-    }));
-
-    const allQuotes = cloudQuotes.length > 0 ? cloudQuotes : mergedLocal;
     const leads = await this.getLeads();
     const leadsMap = new Map(leads.map((l) => [l.id, l]));
 
-    return allQuotes.map((q) => ({
+    return cloudQuotes.map((q) => ({
       ...q,
       lead: leadsMap.get(q.lead_id),
     }));
@@ -1588,16 +1100,14 @@ export const DataStore = {
           cloudTasks = data;
         }
       } catch (e) {
-        console.warn('Falling back to local tasks', e);
+        console.error('Supabase getAllTasks error:', e);
       }
     }
 
-    const localTasks = getLocal<LeadTask[]>('lead_tasks', DEFAULT_TASKS);
-    const allTasks = cloudTasks.length > 0 ? cloudTasks : localTasks;
     const leads = await this.getLeads();
     const leadsMap = new Map(leads.map((l) => [l.id, l]));
 
-    return allTasks.map((t) => ({
+    return cloudTasks.map((t) => ({
       ...t,
       lead: leadsMap.get(t.lead_id),
     }));
@@ -1616,19 +1126,14 @@ export const DataStore = {
           cloudActs = data;
         }
       } catch (e) {
-        console.warn('Falling back to local activities', e);
+        console.error('Supabase getAllActivities error:', e);
       }
     }
-
-    const localActs = getLocal<LeadActivity[]>('lead_activities', DEFAULT_ACTIVITIES);
-    const allActs = (cloudActs.length > 0 ? cloudActs : localActs)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, limit);
 
     const leads = await this.getLeads();
     const leadsMap = new Map(leads.map((l) => [l.id, l]));
 
-    return allActs.map((a) => ({
+    return cloudActs.map((a) => ({
       ...a,
       lead: leadsMap.get(a.lead_id),
     }));
@@ -1646,18 +1151,17 @@ export const DataStore = {
           cloudContacts = data;
         }
       } catch (e) {
-        console.warn('Falling back to local contacts', e);
+        console.error('Supabase getAllContacts error:', e);
       }
     }
 
-    const localContacts = getLocal<LeadContact[]>('lead_contacts', DEFAULT_CONTACTS);
-    const allContacts = cloudContacts.length > 0 ? cloudContacts : localContacts;
     const leads = await this.getLeads();
     const leadsMap = new Map(leads.map((l) => [l.id, l]));
 
-    return allContacts.map((c) => ({
+    return cloudContacts.map((c) => ({
       ...c,
       lead: leadsMap.get(c.lead_id),
     }));
   },
 };
+

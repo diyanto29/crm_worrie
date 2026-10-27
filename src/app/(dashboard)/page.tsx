@@ -294,49 +294,44 @@ export default function DashboardPage() {
     });
   }, [leads, teamMembers]);
 
-  // Recent Activities
-  const recentActivities = [
-    {
-      id: 'act-1',
-      title: 'Deal "Website Development & Pelatihan" berhasil dimenangkan',
-      subtitle: `Nilai: ${formatIDR(25000000)} • oleh ${profile?.full_name || 'Asep Gustiawan'}`,
-      time: '1 jam lalu',
-      icon: CheckCircle2,
-      iconColor: 'text-emerald-500 bg-emerald-50 border-emerald-200',
-    },
-    {
-      id: 'act-2',
-      title: 'Email proposal terkirim ke SMK Negeri 1 Jakarta',
-      subtitle: 'Subject: Penawaran Kerjasama Kemitraan Remote Work',
-      time: '3 jam lalu',
-      icon: Mail,
-      iconColor: 'text-blue-500 bg-blue-50 border-blue-200',
-    },
-    {
-      id: 'act-3',
-      title: 'Lead baru ditambahkan: Kopi Ruang Tenang Bandung',
-      subtitle: 'Sumber: Google Maps Scraper',
-      time: '5 jam lalu',
-      icon: Users,
-      iconColor: 'text-purple-500 bg-purple-50 border-purple-200',
-    },
-    {
-      id: 'act-4',
-      title: 'Meeting presentasi dijadwalkan dengan South Smiles',
-      subtitle: 'Besok, 10:00 WIB • Zoom Meeting',
-      time: '1 hari lalu',
-      icon: Calendar,
-      iconColor: 'text-amber-500 bg-amber-50 border-amber-200',
-    },
-    {
-      id: 'act-5',
-      title: 'Tugas "Follow up proposal kemitraan" selesai',
-      subtitle: `oleh ${profile?.full_name || 'Asep Gustiawan'}`,
-      time: '1 hari lalu',
-      icon: CheckSquare,
-      iconColor: 'text-teal-500 bg-teal-50 border-teal-200',
-    },
-  ];
+  // Recent Activities (Pure Real-time from Supabase database)
+  const recentActivities = useMemo(() => {
+    return activities.map((act) => {
+      let icon = CheckCircle2;
+      let iconColor = 'text-blue-500 bg-blue-50 border-blue-200';
+
+      if (act.activity_type === 'stage_changed') {
+        icon = CheckCircle2;
+        iconColor = 'text-emerald-500 bg-emerald-50 border-emerald-200';
+      } else if (act.activity_type === 'quotation_created' || act.activity_type === 'quotation_sent') {
+        icon = Mail;
+        iconColor = 'text-purple-500 bg-purple-50 border-purple-200';
+      } else if (act.activity_type === 'contact_added' || act.activity_type === 'contact_updated') {
+        icon = Users;
+        iconColor = 'text-indigo-500 bg-indigo-50 border-indigo-200';
+      } else if (act.activity_type === 'meeting') {
+        icon = Calendar;
+        iconColor = 'text-amber-500 bg-amber-50 border-amber-200';
+      } else if (act.activity_type === 'note_created') {
+        icon = CheckSquare;
+        iconColor = 'text-teal-500 bg-teal-50 border-teal-200';
+      }
+
+      const diffMs = Date.now() - new Date(act.created_at).getTime();
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+      const timeStr = diffDays > 0 ? `${diffDays} hari lalu` : diffHours > 0 ? `${diffHours} jam lalu` : 'Baru saja';
+
+      return {
+        id: act.id,
+        title: act.title,
+        subtitle: `${act.lead?.business_name ? `${act.lead.business_name} • ` : ''}oleh ${act.actor_name || 'Tim Sales'}`,
+        time: timeStr,
+        icon,
+        iconColor,
+      };
+    });
+  }, [activities]);
 
   return (
     <div key={animKey} className="space-y-6 font-sans">
@@ -885,67 +880,77 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {recentLeads.map((item, rIdx) => (
-                    <tr 
-                      key={item.id} 
-                      onClick={() => router.push(`/crm/${item.id}`)}
-                      className="hover:bg-blue-50/50 hover:translate-x-0.5 transition-all duration-150 cursor-pointer group"
-                    >
-                      {/* Name & Avatar */}
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <img 
-                            src={item.avatarUrl} 
-                            alt={item.name} 
-                            className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-slate-200 shadow-2xs group-hover:scale-110 group-hover:ring-[#004a87] transition-all duration-200"
-                          />
-                          <div className="min-w-0">
-                            <p className="font-extrabold text-slate-900 text-xs truncate max-w-[120px] group-hover:text-[#004a87] transition-colors">{item.name}</p>
-                            <p className="text-[10px] text-slate-400 truncate max-w-[120px] font-mono">{item.email}</p>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Company */}
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
-                          <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0 group-hover:text-[#004a87] transition-colors" />
-                          <span className="truncate max-w-[130px]">{item.company}</span>
-                        </div>
-                      </td>
-
-                      {/* Source */}
-                      <td className="py-3 px-4 text-slate-500 font-medium text-[11px]">
-                        {item.source}
-                      </td>
-
-                      {/* Status Badge */}
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold border ${item.statusColor} group-hover:shadow-2xs transition-shadow`}>
-                          {item.status}
-                        </span>
-                      </td>
-
-                      {/* Time Created */}
-                      <td className="py-3 px-4 text-slate-400 font-medium text-[11px] whitespace-nowrap">
-                        {item.time}
-                      </td>
-
-                      {/* Action Button */}
-                      <td className="py-3 px-3 text-right">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/crm/${item.id}`);
-                          }}
-                          className="p-1 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
-                          title="Buka Prospek"
-                        >
-                          <MoreHorizontal className="w-3.5 h-3.5" />
-                        </button>
+                  {recentLeads.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                        <Users className="w-8 h-8 mx-auto mb-2 opacity-30 text-slate-400" />
+                        <p className="text-xs font-bold text-slate-600">Belum ada data prospek di Supabase</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Jalankan scraping Google Maps atau tambahkan lead baru di menu Leads.</p>
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    recentLeads.map((item, rIdx) => (
+                      <tr 
+                        key={item.id} 
+                        onClick={() => router.push(`/crm/${item.id}`)}
+                        className="hover:bg-blue-50/50 hover:translate-x-0.5 transition-all duration-150 cursor-pointer group"
+                      >
+                        {/* Name & Avatar */}
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2.5">
+                            <img 
+                              src={item.avatarUrl} 
+                              alt={item.name} 
+                              className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-slate-200 shadow-2xs group-hover:scale-110 group-hover:ring-[#004a87] transition-all duration-200"
+                            />
+                            <div className="min-w-0">
+                              <p className="font-extrabold text-slate-900 text-xs truncate max-w-[120px] group-hover:text-[#004a87] transition-colors">{item.name}</p>
+                              <p className="text-[10px] text-slate-400 truncate max-w-[120px] font-mono">{item.email}</p>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Company */}
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0 group-hover:text-[#004a87] transition-colors" />
+                            <span className="truncate max-w-[130px]">{item.company}</span>
+                          </div>
+                        </td>
+
+                        {/* Source */}
+                        <td className="py-3 px-4 text-slate-500 font-medium text-[11px]">
+                          {item.source}
+                        </td>
+
+                        {/* Status Badge */}
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold border ${item.statusColor} group-hover:shadow-2xs transition-shadow`}>
+                            {item.status}
+                          </span>
+                        </td>
+
+                        {/* Time Created */}
+                        <td className="py-3 px-4 text-slate-400 font-medium text-[11px] whitespace-nowrap">
+                          {item.time}
+                        </td>
+
+                        {/* Action Button */}
+                        <td className="py-3 px-3 text-right">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/crm/${item.id}`);
+                            }}
+                            className="p-1 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+                            title="Buka Prospek"
+                          >
+                            <MoreHorizontal className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -974,33 +979,41 @@ export default function DashboardPage() {
             </div>
 
             <div className="p-4 space-y-3.5">
-              {recentActivities.map((act) => {
-                const IconComponent = act.icon;
-                return (
-                  <div 
-                    key={act.id} 
-                    className="group flex items-start justify-between gap-3 text-xs p-2 -mx-2 rounded-xl hover:bg-slate-50 transition-all duration-150 cursor-pointer"
-                  >
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border mt-0.5 ${act.iconColor} group-hover:scale-110 group-hover:rotate-6 transition-all duration-200 shadow-2xs`}>
-                        <IconComponent className="w-3.5 h-3.5" />
+              {recentActivities.length === 0 ? (
+                <div className="py-8 text-center text-slate-400">
+                  <Clock className="w-8 h-8 mx-auto mb-2 opacity-30 text-slate-400" />
+                  <p className="text-xs font-bold text-slate-600">Belum ada riwayat aktivitas</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Semua aksi pembaruan tahap, follow-up, dan proposal tercatat di sini.</p>
+                </div>
+              ) : (
+                recentActivities.map((act) => {
+                  const IconComponent = act.icon;
+                  return (
+                    <div 
+                      key={act.id} 
+                      className="group flex items-start justify-between gap-3 text-xs p-2 -mx-2 rounded-xl hover:bg-slate-50 transition-all duration-150 cursor-pointer"
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border mt-0.5 ${act.iconColor} group-hover:scale-110 group-hover:rotate-6 transition-all duration-200 shadow-2xs`}>
+                          <IconComponent className="w-3.5 h-3.5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-extrabold text-slate-900 leading-snug truncate group-hover:text-[#004a87] transition-colors">
+                            {act.title}
+                          </p>
+                          <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                            {act.subtitle}
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-extrabold text-slate-900 leading-snug truncate group-hover:text-[#004a87] transition-colors">
-                          {act.title}
-                        </p>
-                        <p className="text-[11px] text-slate-500 mt-0.5 truncate">
-                          {act.subtitle}
-                        </p>
-                      </div>
-                    </div>
 
-                    <span className="text-[11px] text-slate-400 whitespace-nowrap font-medium shrink-0 group-hover:text-slate-600 transition-colors">
-                      {act.time}
-                    </span>
-                  </div>
-                );
-              })}
+                      <span className="text-[11px] text-slate-400 whitespace-nowrap font-medium shrink-0 group-hover:text-slate-600 transition-colors">
+                        {act.time}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

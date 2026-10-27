@@ -160,12 +160,12 @@ export default function TemplatesPage() {
 
   // Preview replacement using sample business
   const previewBody = body
-    .replace(/{business_name}/g, 'Drg. Senyum Sehat Dental')
+    .replace(/{business_name}/g, 'SMK Negeri 1 Jakarta')
     .replace(/{rating}/g, '4.8')
     .replace(/{reviews_count}/g, '142')
-    .replace(/{address}/g, 'Jl. Fatmawati No. 42, Jakarta Selatan')
+    .replace(/{address}/g, 'Jl. Budi Utomo No. 7, Jakarta Pusat')
     .replace(/{contact_phone}/g, '0812-9876-5432')
-    .replace(/{app_url}/g, 'https://aplikasikita.com/coba-gratis');
+    .replace(/{app_url}/g, 'https://worrie.id');
 
   const filteredRecommendations = recFilter === 'all' 
     ? RECOMMENDED_TEMPLATES 

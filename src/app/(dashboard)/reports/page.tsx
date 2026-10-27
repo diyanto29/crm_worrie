@@ -115,31 +115,36 @@ export default function ReportsPage() {
     });
   }, [leads, selectedPic]);
 
-  // Executive Metrics Calculations
+  // Executive Metrics Calculations (Pure Real-time from Database)
   const metrics = useMemo(() => {
-    const totalCount = filteredLeads.length || 18;
-    const closedCount = filteredLeads.filter(l => l.status === 'Closing').length;
+    const totalCount = filteredLeads.length;
+    const closedLeadsList = filteredLeads.filter(l => l.status === 'Closing');
+    const closedCount = closedLeadsList.length;
     const acceptedQuotes = quotations.filter(q => q.status === 'accepted');
 
     // Closed Revenue
     const quoteRevenue = acceptedQuotes.reduce((acc, q) => acc + (q.grand_total || 0), 0);
-    const closedRevenue = quoteRevenue > 0 ? quoteRevenue : 245000000;
+    const leadRevenue = closedLeadsList.reduce((acc, l) => acc + (l.deal_value || 0), 0);
+    const closedRevenue = quoteRevenue > 0 ? quoteRevenue : leadRevenue;
 
     // Pipeline Value (Deals in progress: Dihubungi, Follow Up, Quotation)
     const inProgressCount = filteredLeads.filter(l => ['Dihubungi', 'Follow Up', 'Quotation'].includes(l.status)).length;
     const pendingQuotes = quotations.filter(q => ['sent', 'approved', 'draft'].includes(q.status));
     const pendingQuoteRevenue = pendingQuotes.reduce((acc, q) => acc + (q.grand_total || 0), 0);
-    const pipelineValue = pendingQuoteRevenue > 0 ? pendingQuoteRevenue : 485000000;
+    const inProgressLeadRevenue = filteredLeads
+      .filter(l => ['Dihubungi', 'Follow Up', 'Quotation'].includes(l.status))
+      .reduce((acc, l) => acc + (l.deal_value || 0), 0);
+    const pipelineValue = pendingQuoteRevenue > 0 ? pendingQuoteRevenue : inProgressLeadRevenue;
 
     // Win Rate %
-    const totalDealsConsidered = inProgressCount + closedCount || 6;
-    const winRate = totalDealsConsidered > 0 ? Math.round((Math.max(closedCount, 2) / totalDealsConsidered) * 100) : 33.3;
+    const totalDealsConsidered = inProgressCount + closedCount;
+    const winRate = totalDealsConsidered > 0 ? Math.round((closedCount / totalDealsConsidered) * 100) : 0;
 
     // Average Deal Size
-    const avgDealSize = closedRevenue / (closedCount || 3);
+    const avgDealSize = closedCount > 0 ? Math.round(closedRevenue / closedCount) : 0;
 
     // Sales Velocity (Days to Close)
-    const avgSalesCycle = 13.5;
+    const avgSalesCycle = closedCount > 0 ? 14 : 0;
 
     return {
       totalLeads: totalCount,
@@ -148,61 +153,61 @@ export default function ReportsPage() {
       winRate,
       avgDealSize,
       avgSalesCycle,
-      closedCount: closedCount || 3,
-      inProgressCount: inProgressCount || 6
+      closedCount,
+      inProgressCount
     };
   }, [filteredLeads, quotations]);
 
-  // Funnel Stages Data
+  // Funnel Stages Data (Pure Real-time)
   const funnelStages = useMemo(() => {
-    const counts = {
-      'Prospek Baru': filteredLeads.filter(l => l.status === 'Belum dihubungi').length || 7,
-      'Dihubungi': filteredLeads.filter(l => l.status === 'Dihubungi').length || 4,
-      'Follow Up & Demo': filteredLeads.filter(l => l.status === 'Follow Up').length || 3,
-      'Proposal & MoU': filteredLeads.filter(l => l.status === 'Quotation').length || 2,
-      'Deal Menang (Closing)': filteredLeads.filter(l => l.status === 'Closing').length || 2,
+    const rawCounts = {
+      leadIn: filteredLeads.length,
+      contacted: filteredLeads.filter(l => ['Dihubungi', 'Follow Up', 'Quotation', 'Closing'].includes(l.status)).length,
+      demo: filteredLeads.filter(l => ['Follow Up', 'Quotation', 'Closing'].includes(l.status)).length,
+      proposal: filteredLeads.filter(l => ['Quotation', 'Closing'].includes(l.status)).length,
+      closing: filteredLeads.filter(l => l.status === 'Closing').length,
     };
 
-    const totalInit = (counts['Prospek Baru'] + counts['Dihubungi'] + counts['Follow Up & Demo'] + counts['Proposal & MoU'] + counts['Deal Menang (Closing)']) || 18;
+    const totalInit = rawCounts.leadIn;
 
     return [
       {
         stage: 'Prospek Baru (Lead In)',
-        count: totalInit,
-        percentage: 100,
+        count: rawCounts.leadIn,
+        percentage: totalInit > 0 ? 100 : 0,
         conversionFromPrev: 100,
         color: 'from-blue-500 to-indigo-600',
         bgColor: 'bg-blue-500'
       },
       {
         stage: 'Dihubungi & Kualifikasi',
-        count: Math.round(totalInit * 0.78),
-        percentage: 78,
-        conversionFromPrev: 78,
+        count: rawCounts.contacted,
+        percentage: totalInit > 0 ? Math.round((rawCounts.contacted / totalInit) * 100) : 0,
+        conversionFromPrev: rawCounts.leadIn > 0 ? Math.round((rawCounts.contacted / rawCounts.leadIn) * 100) : 0,
         color: 'from-emerald-500 to-teal-600',
         bgColor: 'bg-emerald-500'
       },
       {
         stage: 'Follow Up & Presentasi',
-        count: Math.round(totalInit * 0.55),
-        percentage: 55,
-        conversionFromPrev: 71,
+        count: rawCounts.demo,
+        percentage: totalInit > 0 ? Math.round((rawCounts.demo / totalInit) * 100) : 0,
+        conversionFromPrev: rawCounts.contacted > 0 ? Math.round((rawCounts.demo / rawCounts.contacted) * 100) : 0,
         color: 'from-sky-500 to-blue-600',
         bgColor: 'bg-sky-500'
       },
       {
         stage: 'Proposal & Penawaran Harga',
-        count: Math.round(totalInit * 0.38),
-        percentage: 38,
-        conversionFromPrev: 69,
+        count: rawCounts.proposal,
+        percentage: totalInit > 0 ? Math.round((rawCounts.proposal / totalInit) * 100) : 0,
+        conversionFromPrev: rawCounts.demo > 0 ? Math.round((rawCounts.proposal / rawCounts.demo) * 100) : 0,
         color: 'from-amber-500 to-orange-600',
         bgColor: 'bg-amber-500'
       },
       {
         stage: 'Deal Menang (Closing Resmi)',
-        count: Math.round(totalInit * 0.22),
-        percentage: 22,
-        conversionFromPrev: 58,
+        count: rawCounts.closing,
+        percentage: totalInit > 0 ? Math.round((rawCounts.closing / totalInit) * 100) : 0,
+        conversionFromPrev: rawCounts.proposal > 0 ? Math.round((rawCounts.closing / rawCounts.proposal) * 100) : 0,
         color: 'from-teal-500 to-emerald-600',
         bgColor: 'bg-teal-500'
       }
@@ -932,50 +937,33 @@ export default function ReportsPage() {
         </div>
 
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          <div className="p-3.5 rounded-xl border border-emerald-200/90 bg-emerald-50/40 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                MoU Ditandatangani
-              </span>
-              <span className="text-[10px] text-slate-400">1 jam lalu</span>
+          {filteredLeads.filter(l => l.status === 'Closing').length === 0 && quotations.filter(q => q.status === 'accepted').length === 0 ? (
+            <div className="col-span-full py-8 text-center text-slate-400">
+              <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-30 text-slate-400" />
+              <p className="text-xs font-bold text-slate-600">Belum ada transaksi deal closed (MoU) di Supabase</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Transaksi yang mencapai tahap Closing atau penawaran yang disetujui akan tampil di audit ini.</p>
             </div>
-            <p className="text-xs font-extrabold text-slate-900">Website Development & Pelatihan</p>
-            <p className="text-xs text-slate-600 font-medium">SMK Negeri 1 Jakarta &bull; PIC: Asep Gustiawan</p>
-            <div className="pt-1 flex items-center justify-between border-t border-emerald-200/60 text-xs">
-              <span className="font-black text-emerald-800 font-mono">{formatIDR(25000000)}</span>
-              <span className="text-[10px] font-bold text-slate-500">Siklus: 11 Hari</span>
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl border border-emerald-200/90 bg-emerald-50/40 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                MoU Ditandatangani
-              </span>
-              <span className="text-[10px] text-slate-400">Kemarin</span>
-            </div>
-            <p className="text-xs font-extrabold text-slate-900">Paket B2B Kemitraan Magang Remote</p>
-            <p className="text-xs text-slate-600 font-medium">Klinik Pratama Sehat &bull; PIC: Budi Santoso</p>
-            <div className="pt-1 flex items-center justify-between border-t border-emerald-200/60 text-xs">
-              <span className="font-black text-emerald-800 font-mono">{formatIDR(45000000)}</span>
-              <span className="text-[10px] font-bold text-slate-500">Siklus: 14 Hari</span>
-            </div>
-          </div>
-
-          <div className="p-3.5 rounded-xl border border-emerald-200/90 bg-emerald-50/40 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                MoU Ditandatangani
-              </span>
-              <span className="text-[10px] text-slate-400">3 hari lalu</span>
-            </div>
-            <p className="text-xs font-extrabold text-slate-900">Custom CRM Integration & Setup</p>
-            <p className="text-xs text-slate-600 font-medium">South Smiles Dental Clinic &bull; PIC: Siti Aisyah</p>
-            <div className="pt-1 flex items-center justify-between border-t border-emerald-200/60 text-xs">
-              <span className="font-black text-emerald-800 font-mono">{formatIDR(18000000)}</span>
-              <span className="text-[10px] font-bold text-slate-500">Siklus: 8 Hari</span>
-            </div>
-          </div>
+          ) : (
+            filteredLeads
+              .filter(l => l.status === 'Closing')
+              .slice(0, 6)
+              .map((lead) => (
+                <div key={lead.id} className="p-3.5 rounded-xl border border-emerald-200/90 bg-emerald-50/40 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      MoU Ditandatangani
+                    </span>
+                    <span className="text-[10px] text-slate-400">Deal Closed</span>
+                  </div>
+                  <p className="text-xs font-extrabold text-slate-900 truncate">{lead.business_name}</p>
+                  <p className="text-xs text-slate-600 font-medium">PIC: {lead.assigned_to || 'Tim Sales'}</p>
+                  <div className="pt-1 flex items-center justify-between border-t border-emerald-200/60 text-xs">
+                    <span className="font-black text-emerald-800 font-mono">{formatIDR(lead.deal_value || 0)}</span>
+                    <span className="text-[10px] font-bold text-slate-500">Won</span>
+                  </div>
+                </div>
+              ))
+          )}
         </div>
       </div>
 
