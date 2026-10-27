@@ -160,13 +160,13 @@ export default function DashboardPage() {
   const totalRevenue = useMemo(() => {
     const fromWonLeads = closedLeads.reduce((acc, curr) => acc + (Number(curr.deal_value) || 0), 0);
     const fromQuotes = quotations.filter(q => q.status === 'accepted').reduce((acc, curr) => acc + (Number(curr.grand_total) || 0), 0);
-    return Math.max(fromWonLeads, fromQuotes, 245000000);
+    return Math.max(fromWonLeads, fromQuotes);
   }, [closedLeads, quotations]);
 
   const completedTasks = tasks.filter(t => t.is_completed);
   const taskCompletionPct = tasks.length > 0 
     ? Math.round((completedTasks.length / tasks.length) * 100) 
-    : 78;
+    : 0;
 
   const formatIDR = (val: number) => `Rp ${Number(val || 0).toLocaleString('id-ID')}`;
 
@@ -180,32 +180,86 @@ export default function DashboardPage() {
     'Ditolak': leads.filter(l => l.status === 'Ditolak').length,
   }), [leads]);
 
-  // Chart data points (6 Months)
-  const chartData = [
-    { month: 'Jan', rev: 90, deals: 32, revLabel: 'Rp 90.000.000', x: 40, yRev: 210, yDeal: 220 },
-    { month: 'Feb', rev: 145, deals: 48, revLabel: 'Rp 145.000.000', x: 140, yRev: 165, yDeal: 180 },
-    { month: 'Mar', rev: 175, deals: 55, revLabel: 'Rp 175.000.000', x: 240, yRev: 145, yDeal: 165 },
-    { month: 'Apr', rev: 250, deals: 82, revLabel: 'Rp 250.000.000', x: 340, yRev: 85, yDeal: 110 },
-    { month: 'Mei', rev: 195, deals: 60, revLabel: 'Rp 195.000.000', x: 440, yRev: 130, yDeal: 155 },
-    { month: 'Jun', rev: 270, deals: 95, revLabel: 'Rp 270.000.000', x: 540, yRev: 70, yDeal: 90 },
-  ];
+  // Chart data points (6 Months dynamic from real data)
+  const chartData = useMemo(() => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const now = new Date();
+    const result = [];
 
-  // Pipeline funnel stages matching CRM Pipeline (/crm) column names
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mIdx = d.getMonth();
+      const yr = d.getFullYear();
+      const monthLabel = monthNames[mIdx];
+
+      // Match leads closed in this month
+      const monthClosedLeads = closedLeads.filter(l => {
+        const ld = new Date(l.created_at);
+        return ld.getMonth() === mIdx && ld.getFullYear() === yr;
+      });
+      const monthWonQuotes = quotations.filter(q => {
+        const qd = new Date(q.created_at);
+        return q.status === 'accepted' && qd.getMonth() === mIdx && qd.getFullYear() === yr;
+      });
+
+      const leadRev = monthClosedLeads.reduce((acc, l) => acc + (l.deal_value || 0), 0);
+      const quoteRev = monthWonQuotes.reduce((acc, q) => acc + (q.grand_total || 0), 0);
+      const revTotal = Math.max(leadRev, quoteRev);
+      const dealsCount = Math.max(monthClosedLeads.length, monthWonQuotes.length);
+
+      // SVG coordinate calculations (max 300M, height 240)
+      const revInMillions = Math.round(revTotal / 1000000);
+      const yRev = Math.max(40, 240 - (revInMillions / 300) * 180);
+      const yDeal = Math.max(50, 240 - (dealsCount / 30) * 170);
+
+      result.push({
+        month: monthLabel,
+        rev: revInMillions,
+        deals: dealsCount,
+        revLabel: formatIDR(revTotal),
+        x: 40 + (5 - i) * 100,
+        yRev: revTotal > 0 ? yRev : 230,
+        yDeal: dealsCount > 0 ? yDeal : 230,
+      });
+    }
+
+    return result;
+  }, [closedLeads, quotations]);
+
+  // Dynamic SVG path lines from real metrics
+  const revLinePath = useMemo(() => {
+    if (!chartData || chartData.length === 0) return 'M 40,248 L 540,248';
+    return chartData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${d.x},${d.yRev}`).join(' ');
+  }, [chartData]);
+
+  const revAreaPath = useMemo(() => {
+    if (!chartData || chartData.length === 0) return '';
+    const firstX = chartData[0].x;
+    const lastX = chartData[chartData.length - 1].x;
+    return `${revLinePath} L ${lastX},250 L ${firstX},250 Z`;
+  }, [chartData, revLinePath]);
+
+  const dealLinePath = useMemo(() => {
+    if (!chartData || chartData.length === 0) return 'M 40,248 L 540,248';
+    return chartData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${d.x},${d.yDeal}`).join(' ');
+  }, [chartData]);
+
+  // Pipeline funnel stages matching CRM Pipeline (/crm) column names (100% Real from Supabase)
   const totalActivePipeline = (
     statusCounts['Belum dihubungi'] +
     statusCounts['Dihubungi'] +
     statusCounts['Follow Up'] +
     statusCounts['Quotation'] +
     statusCounts['Closing']
-  ) || 1;
+  );
 
   const pipelineStages = [
     {
       id: 'prospek_baru',
       name: 'Prospek Baru',
       sublabel: 'Lead baru masuk',
-      count: leads.length > 0 ? statusCounts['Belum dihubungi'] : 356,
-      pct: leads.length > 0 ? Math.round((statusCounts['Belum dihubungi'] / totalActivePipeline) * 100) : 35,
+      count: statusCounts['Belum dihubungi'],
+      pct: totalActivePipeline > 0 ? Math.round((statusCounts['Belum dihubungi'] / totalActivePipeline) * 100) : 0,
       icon: Layers,
       iconBg: 'bg-rose-100 text-rose-700',
       barColor: 'bg-rose-500',
@@ -214,8 +268,8 @@ export default function DashboardPage() {
       id: 'dihubungi',
       name: 'Dihubungi',
       sublabel: 'Proses kualifikasi & kontak',
-      count: leads.length > 0 ? statusCounts['Dihubungi'] : 217,
-      pct: leads.length > 0 ? Math.round((statusCounts['Dihubungi'] / totalActivePipeline) * 100) : 21,
+      count: statusCounts['Dihubungi'],
+      pct: totalActivePipeline > 0 ? Math.round((statusCounts['Dihubungi'] / totalActivePipeline) * 100) : 0,
       icon: Users,
       iconBg: 'bg-emerald-100 text-emerald-700',
       barColor: 'bg-emerald-500',
@@ -224,8 +278,8 @@ export default function DashboardPage() {
       id: 'follow_up',
       name: 'Follow Up & Demo',
       sublabel: 'Presentasi & follow up',
-      count: leads.length > 0 ? statusCounts['Follow Up'] : 128,
-      pct: leads.length > 0 ? Math.round((statusCounts['Follow Up'] / totalActivePipeline) * 100) : 13,
+      count: statusCounts['Follow Up'],
+      pct: totalActivePipeline > 0 ? Math.round((statusCounts['Follow Up'] / totalActivePipeline) * 100) : 0,
       icon: TrendingUp,
       iconBg: 'bg-sky-100 text-sky-700',
       barColor: 'bg-sky-500',
@@ -234,8 +288,8 @@ export default function DashboardPage() {
       id: 'proposal',
       name: 'Proposal & Penawaran',
       sublabel: 'Penawaran MoU / harga dikirim',
-      count: leads.length > 0 ? statusCounts['Quotation'] : 78,
-      pct: leads.length > 0 ? Math.round((statusCounts['Quotation'] / totalActivePipeline) * 100) : 8,
+      count: statusCounts['Quotation'],
+      pct: totalActivePipeline > 0 ? Math.round((statusCounts['Quotation'] / totalActivePipeline) * 100) : 0,
       icon: FileSpreadsheet,
       iconBg: 'bg-indigo-100 text-indigo-700',
       barColor: 'bg-indigo-500',
@@ -244,8 +298,8 @@ export default function DashboardPage() {
       id: 'closing',
       name: 'Deal Menang (Closing)',
       sublabel: 'Berhasil ditutup / closing',
-      count: leads.length > 0 ? statusCounts['Closing'] : 132,
-      pct: leads.length > 0 ? Math.round((statusCounts['Closing'] / totalActivePipeline) * 100) : 23,
+      count: statusCounts['Closing'],
+      pct: totalActivePipeline > 0 ? Math.round((statusCounts['Closing'] / totalActivePipeline) * 100) : 0,
       icon: CheckCircle2,
       iconBg: 'bg-teal-100 text-teal-800',
       barColor: 'bg-teal-500',
@@ -254,18 +308,29 @@ export default function DashboardPage() {
 
   // Recent Leads Table (Connected to Team Management PICs)
   const recentLeads = useMemo(() => {
-    return leads.slice(0, 5).map((l, idx) => {
+    return leads.slice(0, 5).map((l) => {
       const pic = teamMembers.find((m) => m.full_name === l.assigned_to);
-      const picName = l.assigned_to || (idx % 2 === 0 ? 'Budi Santoso' : 'Siti Aisyah');
+      const picName = l.assigned_to || 'Belum Ditugaskan';
       const picAvatar = pic?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(picName)}&background=004a87&color=fff&bold=true`;
-      const picEmail = pic?.email || `${picName.toLowerCase().replace(/\s+/g, '')}@worrie.id`;
+      const picEmail = pic?.email || '-';
+
+      const source = l.gmaps_url || l.source_prospect_id 
+        ? 'Google Maps' 
+        : l.website_url 
+        ? 'Website' 
+        : 'Direct / Manual';
+
+      const diffMs = Date.now() - new Date(l.created_at).getTime();
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+      const timeStr = diffDays > 0 ? `${diffDays} hari lalu` : diffHours > 0 ? `${diffHours} jam lalu` : 'Baru saja';
 
       return {
         id: l.id,
         name: picName,
         email: picEmail,
         company: l.business_name,
-        source: idx % 3 === 0 ? 'Google Maps' : idx % 3 === 1 ? 'Website' : 'Instagram',
+        source,
         status: l.status === 'Belum dihubungi' 
           ? 'Prospek Baru' 
           : l.status === 'Dihubungi' 
@@ -288,7 +353,7 @@ export default function DashboardPage() {
           : l.status === 'Closing'
           ? 'bg-teal-50 text-teal-700 border-teal-200'
           : 'bg-slate-100 text-slate-700 border-slate-200',
-        time: idx === 0 ? '2 jam lalu' : idx === 1 ? '5 jam lalu' : idx === 2 ? '1 hari lalu' : '2 hari lalu',
+        time: timeStr,
         avatarUrl: picAvatar
       };
     });
@@ -382,17 +447,20 @@ export default function DashboardPage() {
             </kbd>
           </div>
 
-          {/* Notification Bell with Animated Badge */}
+          {/* Notification Bell with Dynamic Pending Tasks Badge */}
           <div className="relative group">
             <button 
+              onClick={() => router.push('/tasks')}
               className="p-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 shadow-2xs transition-transform duration-200 group-hover:scale-105 active:scale-95 cursor-pointer"
-              title="Notifikasi"
+              title="Notifikasi Tugas Pending"
             >
               <Bell className="w-4 h-4 text-slate-600 group-hover:rotate-12 transition-transform duration-200" />
             </button>
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-extrabold flex items-center justify-center ring-2 ring-white animate-pulse">
-              3
-            </span>
+            {tasks.filter(t => !t.is_completed).length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-extrabold flex items-center justify-center ring-2 ring-white animate-pulse">
+                {tasks.filter(t => !t.is_completed).length}
+              </span>
+            )}
           </div>
 
           {/* Primary Action Button: + Tambah Baru ▾ with Higher Stacking Context */}
@@ -469,11 +537,10 @@ export default function DashboardPage() {
             </div>
           </div>
           <p className="text-2xl font-black text-slate-900 mt-2 font-mono group-hover:text-purple-700 transition-colors">
-            <AnimatedNumber value={totalLeads > 0 ? totalLeads : 1248} />
+            <AnimatedNumber value={totalLeads} />
           </p>
-          <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 mt-1">
-            <span className="inline-block transition-transform duration-200 group-hover:-translate-y-0.5">↑ 12.5%</span>
-            <span className="text-slate-400 font-normal">vs bulan lalu</span>
+          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 mt-1">
+            <span className="text-[#004a87] font-semibold">{leads.length > 0 ? `${leads.length} prospek` : 'Belum ada prospek'}</span>
           </div>
         </div>
 
@@ -490,11 +557,10 @@ export default function DashboardPage() {
             </div>
           </div>
           <p className="text-2xl font-black text-slate-900 mt-2 font-mono group-hover:text-blue-700 transition-colors">
-            <AnimatedNumber value={totalDeals > 0 ? totalDeals : 312} />
+            <AnimatedNumber value={totalDeals} />
           </p>
-          <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 mt-1">
-            <span className="inline-block transition-transform duration-200 group-hover:-translate-y-0.5">↑ 8.2%</span>
-            <span className="text-slate-400 font-normal">vs bulan lalu</span>
+          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 mt-1">
+            <span className="text-[#004a87] font-semibold">{totalDeals > 0 ? `${inProgressDeals.length} aktif pipeline` : 'Pipeline kosong'}</span>
           </div>
         </div>
 
@@ -511,11 +577,10 @@ export default function DashboardPage() {
             </div>
           </div>
           <p className="text-2xl font-black text-slate-900 mt-2 font-mono group-hover:text-emerald-700 transition-colors">
-            <AnimatedNumber value={wonDealsCount > 0 ? wonDealsCount : 132} />
+            <AnimatedNumber value={wonDealsCount} />
           </p>
-          <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 mt-1">
-            <span className="inline-block transition-transform duration-200 group-hover:-translate-y-0.5">↑ 15.3%</span>
-            <span className="text-slate-400 font-normal">vs bulan lalu</span>
+          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 mt-1">
+            <span className="text-emerald-600 font-semibold">{wonDealsCount > 0 ? `${totalDeals > 0 ? Math.round((wonDealsCount / totalDeals) * 100) : 0}% win rate` : 'Belum closing'}</span>
           </div>
         </div>
 
@@ -534,9 +599,8 @@ export default function DashboardPage() {
           <p className="text-lg sm:text-xl font-black text-slate-900 mt-2 font-mono truncate group-hover:text-amber-700 transition-colors" title={formatIDR(totalRevenue)}>
             <AnimatedNumber value={totalRevenue} isCurrency={true} />
           </p>
-          <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 mt-1">
-            <span className="inline-block transition-transform duration-200 group-hover:-translate-y-0.5">↑ 10.8%</span>
-            <span className="text-slate-400 font-normal">vs bulan lalu</span>
+          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 mt-1">
+            <span className="text-amber-700 font-semibold">{totalRevenue > 0 ? 'Omset terverifikasi' : 'Belum ada omset'}</span>
           </div>
         </div>
 
@@ -555,9 +619,8 @@ export default function DashboardPage() {
           <p className="text-2xl font-black text-slate-900 mt-2 font-mono group-hover:text-rose-700 transition-colors">
             <AnimatedNumber value={taskCompletionPct} suffix="%" />
           </p>
-          <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 mt-1">
-            <span className="inline-block transition-transform duration-200 group-hover:-translate-y-0.5">↑ 7.1%</span>
-            <span className="text-slate-400 font-normal">vs bulan lalu</span>
+          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 mt-1">
+            <span className="text-rose-600 font-semibold">{tasks.length > 0 ? `${completedTasks.length}/${tasks.length} tuntas` : 'Belum ada tugas'}</span>
           </div>
         </div>
       </div>
@@ -666,14 +729,16 @@ export default function DashboardPage() {
                 {/* Animated Graphic Content (Swept visibly from Jan to Jun) */}
                 <g clipPath={`url(#chartSweepClip-${animKey})`}>
                   {/* Revenue Gradient Fill Area */}
-                  <path
-                    d="M 40,210 Q 90,187 140,165 T 240,145 T 340,85 T 440,130 T 540,70 L 540,250 L 40,250 Z"
-                    fill={`url(#purpleGradient-${animKey})`}
-                  />
+                  {totalRevenue > 0 && (
+                    <path
+                      d={revAreaPath}
+                      fill={`url(#purpleGradient-${animKey})`}
+                    />
+                  )}
 
                   {/* Revenue Solid Purple Line */}
                   <path
-                    d="M 40,210 Q 90,187 140,165 T 240,145 T 340,85 T 440,130 T 540,70"
+                    d={revLinePath}
                     fill="none"
                     stroke="#7c3aed"
                     strokeWidth="2.8"
@@ -682,7 +747,7 @@ export default function DashboardPage() {
 
                   {/* Deal Won Dotted Blue Line */}
                   <path
-                    d="M 40,220 Q 90,200 140,180 T 240,165 T 340,110 T 440,155 T 540,90"
+                    d={dealLinePath}
                     fill="none"
                     stroke="#3b82f6"
                     strokeWidth="2.2"

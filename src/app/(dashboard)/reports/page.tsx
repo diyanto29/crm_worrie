@@ -214,112 +214,126 @@ export default function ReportsPage() {
     ];
   }, [filteredLeads]);
 
-  // Lead Attribution Channels
-  const attributionChannels = [
-    {
-      channel: 'Google Maps Scraper',
-      leads: 184,
-      deals: 18,
-      revenue: 145000000,
-      winRate: 31,
-      color: 'bg-blue-600',
-      badge: 'B2B Top Source'
-    },
-    {
-      channel: 'Website / Inbound Form',
-      leads: 92,
-      deals: 12,
-      revenue: 88000000,
-      winRate: 38,
-      color: 'bg-emerald-600',
-      badge: 'High Conversion'
-    },
-    {
-      channel: 'Instagram & Direct Outreach',
-      leads: 64,
-      deals: 7,
-      revenue: 52000000,
-      winRate: 24,
-      color: 'bg-purple-600',
-      badge: 'Retail Growth'
-    },
-    {
-      channel: 'Referral & Kemitraan',
-      leads: 32,
-      deals: 8,
-      revenue: 74000000,
-      winRate: 52,
-      color: 'bg-amber-500',
-      badge: 'Highest Win Rate'
-    },
-    {
-      channel: 'LinkedIn Outreach',
-      leads: 45,
-      deals: 4,
-      revenue: 35000000,
-      winRate: 20,
-      color: 'bg-sky-500',
-      badge: 'Enterprise'
-    }
-  ];
+  // Lead Attribution Channels (Computed 100% Real from Supabase)
+  const attributionChannels = useMemo(() => {
+    // 1. Google Maps Scraper
+    const gmapsLeads = filteredLeads.filter(l => Boolean(l.gmaps_url || l.source_prospect_id));
+    const gmapsClosed = gmapsLeads.filter(l => l.status === 'Closing');
+    const gmapsRevenue = gmapsClosed.reduce((acc, l) => acc + (l.deal_value || 0), 0);
+    const gmapsWinRate = gmapsLeads.length > 0 ? Math.round((gmapsClosed.length / gmapsLeads.length) * 100) : 0;
 
-  // Team Leaderboard
-  const teamLeaderboard = useMemo(() => {
+    // 2. Website / Inbound Form
+    const webLeads = filteredLeads.filter(l => !l.gmaps_url && !l.source_prospect_id && Boolean(l.website_url));
+    const webClosed = webLeads.filter(l => l.status === 'Closing');
+    const webRevenue = webClosed.reduce((acc, l) => acc + (l.deal_value || 0), 0);
+    const webWinRate = webLeads.length > 0 ? Math.round((webClosed.length / webLeads.length) * 100) : 0;
+
+    // 3. Direct Outreach & Manual
+    const directLeads = filteredLeads.filter(l => !l.gmaps_url && !l.source_prospect_id && !l.website_url);
+    const directClosed = directLeads.filter(l => l.status === 'Closing');
+    const directRevenue = directClosed.reduce((acc, l) => acc + (l.deal_value || 0), 0);
+    const directWinRate = directLeads.length > 0 ? Math.round((directClosed.length / directLeads.length) * 100) : 0;
+
+    // 4. Quotations MoU Deals (Penawaran Resmi)
+    const quoteDeals = quotations.filter(q => q.status === 'accepted');
+    const quoteRevenue = quoteDeals.reduce((acc, q) => acc + (q.grand_total || 0), 0);
+    const quoteWinRate = quotations.length > 0 ? Math.round((quoteDeals.length / quotations.length) * 100) : 0;
+
     return [
       {
-        id: 'user-1',
-        name: profile?.full_name || 'Asep Gustiawan',
-        role: 'Sales Lead & Strategic Partnership',
-        email: profile?.email || 'asep@worrie.id',
-        avatar: profile?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-        assigned: 48,
-        closed: 14,
-        revenue: 128000000,
-        winRate: 29.2,
-        avgResponse: '18 mnt',
-        badge: '🏆 Top Closer'
+        channel: 'Google Maps Scraper',
+        leads: gmapsLeads.length,
+        deals: gmapsClosed.length,
+        revenue: gmapsRevenue,
+        winRate: gmapsWinRate,
+        color: 'bg-blue-600',
+        badge: 'B2B Top Source'
       },
       {
-        id: 'user-2',
-        name: 'Budi Santoso',
-        role: 'Senior Account Executive',
-        email: 'budi.santoso@worrie.id',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
-        assigned: 38,
-        closed: 11,
-        revenue: 96000000,
-        winRate: 28.9,
-        avgResponse: '24 mnt',
-        badge: '⭐ Consistent'
+        channel: 'Website / Inbound Form',
+        leads: webLeads.length,
+        deals: webClosed.length,
+        revenue: webRevenue,
+        winRate: webWinRate,
+        color: 'bg-emerald-600',
+        badge: 'High Conversion'
       },
       {
-        id: 'user-3',
-        name: 'Siti Aisyah',
-        role: 'Outreach & Lead Specialist',
-        email: 'siti.aisyah@worrie.id',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80',
-        assigned: 42,
-        closed: 9,
-        revenue: 68000000,
-        winRate: 21.4,
-        avgResponse: '14 mnt',
-        badge: '⚡ Fastest Contact'
+        channel: 'Direct / Manual Outreach',
+        leads: directLeads.length,
+        deals: directClosed.length,
+        revenue: directRevenue,
+        winRate: directWinRate,
+        color: 'bg-purple-600',
+        badge: 'Direct'
       },
       {
-        id: 'user-4',
-        name: 'Rian Pratama',
-        role: 'B2B Partnership Officer',
-        email: 'rian.pratama@worrie.id',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80',
-        assigned: 30,
-        closed: 7,
-        revenue: 55000000,
-        winRate: 23.3,
-        avgResponse: '32 mnt',
-        badge: '🔥 Rising Star'
+        channel: 'Proposal MoU Kerjasama',
+        leads: quotations.length,
+        deals: quoteDeals.length,
+        revenue: quoteRevenue,
+        winRate: quoteWinRate,
+        color: 'bg-amber-500',
+        badge: 'Official MoU'
       }
     ];
-  }, [profile]);
+  }, [filteredLeads, quotations]);
+
+  // Team Leaderboard (Computed dynamically from Supabase profiles & assigned leads)
+  const teamLeaderboard = useMemo(() => {
+    // If teamMembers from Supabase profiles exist, calculate stats for each member
+    if (teamMembers && teamMembers.length > 0) {
+      return teamMembers.map((member) => {
+        const assigned = filteredLeads.filter(l => l.assigned_to === member.full_name).length;
+        const closedLeads = filteredLeads.filter(l => l.assigned_to === member.full_name && l.status === 'Closing');
+        const closed = closedLeads.length;
+        const revenue = closedLeads.reduce((acc, l) => acc + (l.deal_value || 0), 0);
+        const winRate = assigned > 0 ? Math.round((closed / assigned) * 100) : 0;
+        const badge = closed > 0 ? '🏆 Top Closer' : assigned > 0 ? '⭐ Aktif' : 'Baru Bergabung';
+
+        return {
+          id: member.id,
+          name: member.full_name || 'Marketer Worrie',
+          role: member.role === 'admin' ? 'Sales Lead & Admin' : 'Marketing Executive',
+          email: member.email,
+          avatar: member.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(member.full_name || 'User')}&background=004a87&color=fff&bold=true`,
+          assigned,
+          closed,
+          revenue,
+          winRate,
+          avgResponse: assigned > 0 ? 'Aktif' : '-',
+          badge
+        };
+      });
+    }
+
+    // Fallback to active logged-in profile if teamMembers list hasn't loaded yet
+    if (profile) {
+      const assigned = filteredLeads.filter(l => l.assigned_to === profile.full_name).length;
+      const closedLeads = filteredLeads.filter(l => l.assigned_to === profile.full_name && l.status === 'Closing');
+      const closed = closedLeads.length;
+      const revenue = closedLeads.reduce((acc, l) => acc + (l.deal_value || 0), 0);
+      const winRate = assigned > 0 ? Math.round((closed / assigned) * 100) : 0;
+
+      return [
+        {
+          id: profile.id,
+          name: profile.full_name || 'Staff Marketing',
+          role: profile.role === 'admin' ? 'Administrator' : 'Marketing Executive',
+          email: profile.email,
+          avatar: profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.full_name || 'Staff')}&background=004a87&color=fff&bold=true`,
+          assigned,
+          closed,
+          revenue,
+          winRate,
+          avgResponse: 'Aktif',
+          badge: closed > 0 ? '🏆 Top Closer' : '⭐ Aktif'
+        }
+      ];
+    }
+
+    return [];
+  }, [teamMembers, filteredLeads, profile]);
 
   // Export to CSV Function
   const handleExportCSV = () => {
@@ -398,15 +412,78 @@ export default function ReportsPage() {
     });
   };
 
-  // Monthly Revenue Data for SVG Chart
-  const monthlyData = [
-    { month: 'Jan', revenue: 145000000, pipeline: 180000000, deals: 8 },
-    { month: 'Feb', revenue: 172000000, pipeline: 210000000, deals: 11 },
-    { month: 'Mar', revenue: 215000000, pipeline: 240000000, deals: 14 },
-    { month: 'Apr', revenue: 285000000, pipeline: 310000000, deals: 17 },
-    { month: 'Mei', revenue: 195000000, pipeline: 230000000, deals: 12 },
-    { month: 'Jun', revenue: 245000000, pipeline: 295000000, deals: 15 }
-  ];
+  // Monthly Revenue Data for SVG Chart (Pure Real-time from Supabase 6 Months)
+  const monthlyData = useMemo(() => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const now = new Date();
+    const result = [];
+
+    const closedLeads = filteredLeads.filter(l => l.status === 'Closing');
+    const inProgressLeads = filteredLeads.filter(l => ['Dihubungi', 'Follow Up', 'Quotation'].includes(l.status));
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mIdx = d.getMonth();
+      const yr = d.getFullYear();
+      const monthLabel = monthNames[mIdx];
+
+      // Closed deals in this month
+      const monthClosedLeads = closedLeads.filter(l => {
+        const ld = new Date(l.created_at);
+        return ld.getMonth() === mIdx && ld.getFullYear() === yr;
+      });
+      const monthWonQuotes = quotations.filter(q => {
+        const qd = new Date(q.created_at);
+        return q.status === 'accepted' && qd.getMonth() === mIdx && qd.getFullYear() === yr;
+      });
+
+      const leadRev = monthClosedLeads.reduce((acc, l) => acc + (l.deal_value || 0), 0);
+      const quoteRev = monthWonQuotes.reduce((acc, q) => acc + (q.grand_total || 0), 0);
+      const revenue = Math.max(leadRev, quoteRev);
+      const deals = Math.max(monthClosedLeads.length, monthWonQuotes.length);
+
+      // Pipeline created in this month
+      const monthProgLeads = inProgressLeads.filter(l => {
+        const ld = new Date(l.created_at);
+        return ld.getMonth() === mIdx && ld.getFullYear() === yr;
+      });
+      const pipeline = monthProgLeads.reduce((acc, l) => acc + (l.deal_value || 0), 0);
+
+      // X coordinate for SVG (0 to 600 width, padding 30 to 570)
+      const x = 30 + (5 - i) * 108;
+      // Y coordinates (height 200, bottom base 170, max 300jt)
+      const yRev = revenue > 0 ? Math.max(30, 170 - (revenue / 300000000) * 130) : 170;
+      const yPipe = pipeline > 0 ? Math.max(30, 170 - (pipeline / 300000000) * 130) : 170;
+
+      result.push({
+        month: monthLabel,
+        revenue,
+        pipeline,
+        deals,
+        x,
+        yRev,
+        yPipe
+      });
+    }
+
+    return result;
+  }, [filteredLeads, quotations]);
+
+  // Dynamic SVG report paths
+  const reportRevLine = useMemo(() => {
+    if (!monthlyData || monthlyData.length === 0) return 'M 30,170 L 570,170';
+    return monthlyData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${d.x},${d.yRev}`).join(' ');
+  }, [monthlyData]);
+
+  const reportRevArea = useMemo(() => {
+    if (!monthlyData || monthlyData.length === 0) return '';
+    return `${reportRevLine} L 570,170 L 30,170 Z`;
+  }, [monthlyData, reportRevLine]);
+
+  const reportPipeLine = useMemo(() => {
+    if (!monthlyData || monthlyData.length === 0) return 'M 30,170 L 570,170';
+    return monthlyData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${d.x},${d.yPipe}`).join(' ');
+  }, [monthlyData]);
 
   return (
     <div className="space-y-6 font-sans">
@@ -655,7 +732,7 @@ export default function ReportsPage() {
 
                 {/* Pipeline Projection Line (Dotted Blue) */}
                 <path
-                  d="M 30,120 Q 130,100 230,85 T 430,45 T 570,35"
+                  d={reportPipeLine}
                   fill="none"
                   stroke="#93c5fd"
                   strokeWidth="2.5"
@@ -663,14 +740,16 @@ export default function ReportsPage() {
                 />
 
                 {/* Revenue Gradient Fill */}
-                <path
-                  d="M 30,150 Q 130,125 230,105 T 430,55 T 570,45 L 570,195 L 30,195 Z"
-                  fill="url(#revenueReportGrad)"
-                />
+                {metrics.closedRevenue > 0 && (
+                  <path
+                    d={reportRevArea}
+                    fill="url(#revenueReportGrad)"
+                  />
+                )}
 
                 {/* Revenue Solid Curve Line */}
                 <path
-                  d="M 30,150 Q 130,125 230,105 T 430,55 T 570,45"
+                  d={reportRevLine}
                   fill="none"
                   stroke="#004a87"
                   strokeWidth="3.5"
@@ -679,15 +758,13 @@ export default function ReportsPage() {
 
                 {/* Interactive Points */}
                 {monthlyData.map((d, i) => {
-                  const x = 30 + i * 108;
-                  const y = 150 - (d.revenue / 300000000) * 110;
                   const isHovered = hoveredMonth === i;
 
                   return (
                     <g key={d.month} className="cursor-pointer">
                       <circle
-                        cx={x}
-                        cy={y}
+                        cx={d.x}
+                        cy={d.yRev}
                         r={isHovered ? 7 : 4.5}
                         fill="#004a87"
                         stroke="#ffffff"
@@ -726,7 +803,9 @@ export default function ReportsPage() {
                 <span>Arahkan kursor pada titik grafik untuk rincian tiap bulan</span>
               )}
             </span>
-            <span className="text-emerald-600 font-bold">Rata-rata Pertumbuhan: +14.2% MoM</span>
+            <span className="text-slate-500 font-bold">
+              {metrics.closedRevenue > 0 ? `Total Omset: ${formatIDR(metrics.closedRevenue)}` : 'Sinkron Real-time Supabase'}
+            </span>
           </div>
         </div>
 
@@ -775,7 +854,7 @@ export default function ReportsPage() {
           </div>
 
           <div className="mt-4 p-3 rounded-xl bg-blue-50/70 border border-blue-200/60 text-xs text-blue-900 font-medium">
-            💡 <strong>Insight Konversi:</strong> Tahap <em>Follow Up ke Proposal</em> memiliki rasio keberhasilan tertinggi (71%), membuktikan presentasi demo sangat efektif.
+            💡 <strong>Insight Konversi:</strong> Dari total {metrics.totalLeads} prospek terdaftar, sebanyak {metrics.closedCount} prospek berhasil closing (Win Rate: {metrics.winRate}%).
           </div>
         </div>
       </div>
@@ -789,10 +868,10 @@ export default function ReportsPage() {
             <h2 className="font-extrabold text-sm text-slate-900">Atribusi Saluran & Efektivitas Sumber Lead</h2>
             <p className="text-xs text-slate-500">Mengetahui saluran akuisisi dengan omset dan win rate tertinggi</p>
           </div>
-          <span className="text-xs text-[#004a87] font-bold">Total Akuisisi: 417 Prospek Terkumpul</span>
+          <span className="text-xs text-[#004a87] font-bold">Total Akuisisi: {metrics.totalLeads} Prospek Terkumpul</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {attributionChannels.map((c) => (
             <div 
               key={c.channel}
@@ -861,7 +940,15 @@ export default function ReportsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-              {teamLeaderboard.map((member) => (
+              {teamLeaderboard.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-slate-400">
+                    <p className="text-xs font-bold text-slate-600">Belum ada data marketer di sistem</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Daftarkan tim di menu Kelola Anggota Tim.</p>
+                  </td>
+                </tr>
+              ) : (
+                teamLeaderboard.map((member) => (
                 <tr key={member.id} className="hover:bg-blue-50/50 transition-colors">
                   {/* Member Name & Avatar */}
                   <td className="py-3 px-4">
@@ -912,7 +999,7 @@ export default function ReportsPage() {
                     </span>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>
