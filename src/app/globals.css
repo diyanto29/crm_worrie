@@ -16,4 +16,207 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* =========================================================================
+   INTERACTIVE MICRO-ANIMATIONS & TRANSITION SYSTEM
+   Worrie.id CRM Design System (Smooth, Spring Physics, Delightful Feel)
+========================================================================== */
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes modalPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.015) translateY(-3px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes cardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes checkmarkPop {
+  0% {
+    transform: scale(0.7);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(244, 63, 94, 0);
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-backdrop-in {
+  animation: backdropFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-pop {
+  animation: modalPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-card-slide {
+  animation: cardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-check-pop {
+  animation: checkmarkPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.animate-float {
+  animation: floatGentle 3s ease-in-out infinite;
+}
+
+/* Interactive Card Hover & Lift */
+.interactive-card {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s ease,
+              background-color 0.22s ease;
+}
+
+.interactive-card:hover {
+  transform: translateY(-3px) scale(1.008);
+  box-shadow: 0 12px 28px -6px rgba(0, 74, 135, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+}
+
+.interactive-card:active {
+  transform: translateY(-1px) scale(0.995);
+}
+
+/* Interactive Day Cell Hover in Calendar */
+.calendar-day-cell {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.calendar-day-cell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px -2px rgba(0, 74, 135, 0.08);
+}
+
+/* =========================================================================
+   DASHBOARD ENTRANCE & SVG CHART ANIMATIONS (Smooth, Visible, Elegant)
+========================================================================== */
+@keyframes cardSlideInSlow {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card-slide-slow {
+  animation: cardSlideInSlow 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* SVG Chart Sweep Reveal Animation (Reveals lines and gradient across months) */
+@keyframes chartSweep {
+  0% {
+    width: 0px;
+  }
+  100% {
+    width: 600px;
+  }
+}
+
+.animate-chart-sweep {
+  animation: chartSweep 2.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+@keyframes barGrowSlow {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.animate-bar-grow-slow {
+  transform-origin: left;
+  animation: barGrowSlow 1.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmerGleam 2.5s infinite;
+}
+
+/* =========================================================================
+   STANDARDIZED LIST ROW INTERACTIVE ANIMATION (Design System Standard)
+   Nudge horizontal, soft brand blue glow, title highlight, and avatar zoom
+========================================================================== */
+.table-row-standard {
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.table-row-standard:hover {
+  background-color: rgba(239, 246, 255, 0.55);
+  transform: translateX(4px);
+}
+
+.list-item-standard {
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.list-item-standard:hover {
+  background-color: rgba(239, 246, 255, 0.55);
+  transform: translateX(4px);
+}
+
+
+

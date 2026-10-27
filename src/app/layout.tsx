@@ -13,13 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gmap Prospek - Web Tools Manajemen Leads & CRM WhatsApp",
-  description: "Aplikasi web tools ekstraksi prospek bisnis Google Maps dan manajemen pipeline CRM WhatsApp berbasis Next.js dan Supabase.",
-  applicationName: "Gmap Prospek",
+  title: "Worrie.id CRM - Working Remotely Indonesia",
+  description: "Platform Manajemen Prospek B2B Institusi Pendidikan & B2C Talenta Digital - Working Remotely Indonesia (Worrie.id).",
+  applicationName: "Worrie.id CRM",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Gmap Prospek",
+    title: "Worrie.id CRM",
   },
   icons: {
     icon: [
@@ -40,6 +40,8 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+import { AuthProvider } from "@/lib/authContext";
+
 export default function RootLayout({
   children,
 }: {
@@ -51,7 +53,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 selection:bg-emerald-500 selection:text-white">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

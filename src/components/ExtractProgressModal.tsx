@@ -1,14 +1,12 @@
-'use client';
-
 import React from 'react';
 import { Loader2, CheckCircle2, Globe, Phone, MapPin, Sparkles, Check } from 'lucide-react';
-import { Lead } from '@/types/database';
+import { Lead, CampaignProspect } from '@/types/database';
 
 interface ExtractProgressModalProps {
   isOpen: boolean;
   progress: number; // 0 - 100
   statusMessage: string;
-  foundLeads: Partial<Lead>[];
+  foundLeads: Array<Partial<Lead> | Partial<CampaignProspect>>;
   isDone: boolean;
   onClose: () => void;
 }

@@ -30,25 +30,46 @@ import {
   lockWorkspace 
 } from '@/components/PinProtection';
 import { AppSettings } from '@/types/database';
+import { useAuth } from '@/lib/authContext';
 
-const SQL_SCHEMA_SCRIPT = `-- 1. Inisialisasi Ekstensi
+const SQL_SCHEMA_SCRIPT = `-- ==============================================================================
+-- MIGRATION: 20261027094500_crm_upgrade_draft_contacts_activities_quotations.sql
+-- TANGGAL  : 2026-10-27
+-- DESKRIPSI: Skema Lengkap CRM Worrie (Draft Kampanye, Multi-Kontak, Activity 360, Quotation)
+-- ==============================================================================
+
 create extension if not exists "uuid-ossp";
 
--- 2. Tabel Kampanye Pencarian
-create table public.campaigns (
+-- 1. Profiles Tim Marketing
+create table if not exists public.profiles (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  full_name text not null,
+  role text default 'marketing' check (role in ('admin', 'sales_manager', 'marketing')),
+  phone text,
+  avatar_url text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 2. Campaigns
+create table if not exists public.campaigns (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   keyword text not null,
   location text not null,
-  max_results integer default 20,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  target_results integer default 20,
+  status text default 'completed' check (status in ('draft', 'scraping', 'completed', 'archived')),
+  created_by uuid references public.profiles(id) on delete set null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 3. Tabel Leads / Prospek Bisnis
-create table public.leads (
+-- 3. Draft Prospek Mentah (Sebelum masuk Pipeline)
+create table if not exists public.campaign_prospects (
   id uuid primary key default gen_random_uuid(),
-  campaign_id uuid references public.campaigns(id) on delete cascade,
+  campaign_id uuid references public.campaigns(id) on delete cascade not null,
   business_name text not null,
+  category text,
   address text,
   phone text,
   rating numeric(2,1),
@@ -56,47 +77,171 @@ create table public.leads (
   has_website boolean default false,
   website_url text,
   gmaps_url text,
-  status text default 'Belum dihubungi' check (status in ('Belum dihubungi', 'Dihubungi', 'Follow Up', 'Closing', 'Ditolak')),
-  deal_value numeric(14,2) default 0,
-  notes text,
+  prospect_score integer default 0,
+  curation_status text default 'draft' check (curation_status in ('draft', 'reviewed', 'disqualified', 'converted')),
+  disqualified_reason text,
+  converted_lead_id uuid,
+  converted_at timestamp with time zone,
+  converted_by uuid references public.profiles(id) on delete set null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 4. Tabel Template Pesan WhatsApp
-create table public.message_templates (
+-- 4. Leads / Deals Pipeline Aktif
+create table if not exists public.leads (
+  id uuid primary key default gen_random_uuid(),
+  source_prospect_id uuid references public.campaign_prospects(id) on delete set null,
+  campaign_id uuid references public.campaigns(id) on delete set null,
+  business_name text not null,
+  brand_name text,
+  address text,
+  primary_phone text,
+  phone text,
+  rating numeric(2,1),
+  reviews_count integer default 0,
+  has_website boolean default false,
+  website_url text,
+  gmaps_url text,
+  prospect_score integer default 0,
+  stage text default 'Belum dihubungi' check (
+    stage in ('Belum dihubungi', 'Dihubungi', 'Follow Up', 'Quotation', 'Negosiasi', 'Closing Won', 'Lost')
+  ),
+  deal_value numeric(14,2) default 0,
+  target_close_date date,
+  lost_reason text,
+  assigned_to uuid references public.profiles(id) on delete set null,
+  notes text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 5. Multi-Kontak (Kontak A, B, C)
+create table if not exists public.lead_contacts (
+  id uuid primary key default gen_random_uuid(),
+  lead_id uuid references public.leads(id) on delete cascade not null,
+  name text not null,
+  role text default 'Owner' check (role in ('Owner', 'Direktur', 'Manajer Marketing', 'Staff Operasional', 'Admin', 'Lainnya')),
+  phone text not null,
+  email text,
+  is_primary boolean default false,
+  notes text,
+  created_by uuid references public.profiles(id) on delete set null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 6. Quotation & Rincian Item Penawaran
+create table if not exists public.quotations (
+  id uuid primary key default gen_random_uuid(),
+  lead_id uuid references public.leads(id) on delete cascade not null,
+  contact_id uuid references public.lead_contacts(id) on delete set null,
+  quote_number text unique not null,
+  title text not null,
+  status text default 'draft' check (status in ('draft', 'sent', 'viewed', 'accepted', 'rejected', 'expired')),
+  subtotal numeric(14,2) default 0 not null,
+  discount numeric(14,2) default 0 not null,
+  tax numeric(14,2) default 0 not null,
+  grand_total numeric(14,2) default 0 not null,
+  valid_until date not null,
+  terms_conditions text,
+  notes text,
+  pdf_url text,
+  created_by uuid references public.profiles(id) on delete set null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+create table if not exists public.quotation_items (
+  id uuid primary key default gen_random_uuid(),
+  quotation_id uuid references public.quotations(id) on delete cascade not null,
+  item_name text not null,
+  description text,
+  qty integer default 1 not null,
+  unit_price numeric(14,2) not null,
+  total_price numeric(14,2) not null,
+  sort_order integer default 0
+);
+
+-- 7. Audit Trail & Timeline 360° View
+create table if not exists public.lead_activities (
+  id uuid primary key default gen_random_uuid(),
+  lead_id uuid references public.leads(id) on delete cascade not null,
+  activity_type text not null,
+  title text not null,
+  description text,
+  metadata jsonb default '{}'::jsonb,
+  actor_name text default 'Marketing',
+  created_by uuid references public.profiles(id) on delete set null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 8. Tasks & Reminder Follow-Up
+create table if not exists public.lead_tasks (
+  id uuid primary key default gen_random_uuid(),
+  lead_id uuid references public.leads(id) on delete cascade not null,
+  title text not null,
+  due_date timestamp with time zone not null,
+  is_completed boolean default false,
+  completed_at timestamp with time zone,
+  assigned_to uuid references public.profiles(id) on delete set null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 9. Message Templates & Settings
+create table if not exists public.message_templates (
   id uuid primary key default gen_random_uuid(),
   title text not null,
+  category text default 'first_contact',
   body text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 5. Tabel Konfigurasi WA Gateway
-create table public.app_settings (
+create table if not exists public.app_settings (
   id uuid primary key default gen_random_uuid(),
+  agency_name text default 'Worrie Digital Agency',
+  agency_address text,
+  agency_email text,
+  agency_phone text,
+  agency_logo_url text,
   gateway_provider text default 'xsender',
   api_key text,
   sender_number text,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Optimasi Indeks
-create index idx_leads_campaign on public.leads(campaign_id);
-create index idx_leads_status on public.leads(status);
-create index idx_leads_has_website on public.leads(has_website);
+-- Indeks
+create index if not exists idx_campaign_prospects_camp on public.campaign_prospects(campaign_id);
+create index if not exists idx_leads_stage on public.leads(stage);
+create index if not exists idx_lead_contacts_lead on public.lead_contacts(lead_id);
+create index if not exists idx_lead_activities_lead on public.lead_activities(lead_id, created_at desc);
+create index if not exists idx_quotations_lead on public.quotations(lead_id);
 
--- RLS (Row Level Security)
+-- RLS
+alter table public.profiles enable row level security;
 alter table public.campaigns enable row level security;
+alter table public.campaign_prospects enable row level security;
 alter table public.leads enable row level security;
+alter table public.lead_contacts enable row level security;
+alter table public.quotations enable row level security;
+alter table public.quotation_items enable row level security;
+alter table public.lead_activities enable row level security;
+alter table public.lead_tasks enable row level security;
 alter table public.message_templates enable row level security;
 alter table public.app_settings enable row level security;
 
--- Policy (Akses penuh untuk web tools mandiri)
-create policy "Allow all on campaigns" on public.campaigns for all using (true);
-create policy "Allow all on leads" on public.leads for all using (true);
-create policy "Allow all on templates" on public.message_templates for all using (true);
-create policy "Allow all on settings" on public.app_settings for all using (true);`;
+create policy "Allow all profiles" on public.profiles for all using (true);
+create policy "Allow all campaigns" on public.campaigns for all using (true);
+create policy "Allow all campaign_prospects" on public.campaign_prospects for all using (true);
+create policy "Allow all leads" on public.leads for all using (true);
+create policy "Allow all lead_contacts" on public.lead_contacts for all using (true);
+create policy "Allow all quotations" on public.quotations for all using (true);
+create policy "Allow all quotation_items" on public.quotation_items for all using (true);
+create policy "Allow all lead_activities" on public.lead_activities for all using (true);
+create policy "Allow all lead_tasks" on public.lead_tasks for all using (true);
+create policy "Allow all message_templates" on public.message_templates for all using (true);
+create policy "Allow all app_settings" on public.app_settings for all using (true);`;
 
 export default function SettingsPage() {
+  const { profile } = useAuth();
   const [provider, setProvider] = useState<'xsender' | 'fonnte' | 'waha' | 'other'>('xsender');
   const [apiKey, setApiKey] = useState('');
   const [senderNumber, setSenderNumber] = useState('');
@@ -214,6 +359,20 @@ export default function SettingsPage() {
       setTestSending(false);
     }
   };
+
+  if (profile && profile.role !== 'admin' && profile.role !== 'superadmin') {
+    return (
+      <div className="py-20 text-center space-y-3">
+        <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto">
+          <Shield className="w-6 h-6" />
+        </div>
+        <h2 className="text-lg font-bold text-slate-900">Akses Dibatasi</h2>
+        <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          Halaman Pengaturan Gateway & Database hanya dapat diakses oleh Administrator Working Remotely Indonesia.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">

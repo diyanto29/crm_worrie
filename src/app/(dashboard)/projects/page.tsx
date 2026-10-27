@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import ExtractProgressModal from '@/components/ExtractProgressModal';
 import { DataStore } from '@/lib/dataStore';
-import { Campaign, Lead } from '@/types/database';
+import { Campaign, Lead, CampaignProspect } from '@/types/database';
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -38,7 +38,7 @@ export default function ProjectsPage() {
   const [isExtracting, setIsExtracting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState('');
-  const [extractedLeads, setExtractedLeads] = useState<Partial<Lead>[]>([]);
+  const [extractedLeads, setExtractedLeads] = useState<Array<Partial<CampaignProspect> | Partial<Lead>>>([]);
   const [isDone, setIsDone] = useState(false);
   const [newCampaignId, setNewCampaignId] = useState<string | null>(null);
 
@@ -102,26 +102,36 @@ export default function ProjectsPage() {
         throw new Error(data.error || 'Gagal mengekstrak data.');
       }
 
-      const leadsData: Omit<Lead, 'id' | 'created_at'>[] = (data.leads || []).map((item: any) => ({
-        ...item,
+      const prospectsData: Omit<CampaignProspect, 'id' | 'created_at'>[] = (data.leads || []).map((item: any) => ({
         campaign_id: savedCampaign.id,
+        business_name: item.business_name,
+        category: item.category || 'Institusi / Bisnis',
+        address: item.address,
+        phone: item.phone,
+        rating: item.rating,
+        reviews_count: item.reviews_count,
+        has_website: item.has_website,
+        website_url: item.website_url,
+        gmaps_url: item.gmaps_url,
+        prospect_score: item.prospect_score,
+        curation_status: 'draft',
       }));
 
       // Simulate streaming progress for realistic feedback
       setProgress(65);
       setStatusMessage('Memvalidasi nomor WhatsApp aktif & mendeteksi website...');
-      setExtractedLeads(leadsData.slice(0, Math.min(5, leadsData.length)));
+      setExtractedLeads(prospectsData.slice(0, Math.min(5, prospectsData.length)));
 
       await new Promise((r) => setTimeout(r, 600));
       setProgress(85);
-      setStatusMessage('Menyimpan hasil ke database Supabase...');
-      setExtractedLeads(leadsData);
+      setStatusMessage('Menyimpan ke Draft Prospek (Menunggu Skrining)...');
+      setExtractedLeads(prospectsData);
 
-      // Step 3: Save leads in bulk
-      await DataStore.createLeadsBulk(leadsData);
+      // Step 3: Save prospects as draft in bulk
+      await DataStore.createCampaignProspectsBulk(prospectsData);
 
       setProgress(100);
-      setStatusMessage(`Selesai! Berhasil menyimpan ${leadsData.length} prospek ber-WhatsApp valid.`);
+      setStatusMessage(`Selesai! Berhasil menyimpan ${prospectsData.length} draft prospek siap disaring.`);
       setIsDone(true);
       loadCampaigns();
     } catch (error: any) {
@@ -307,7 +317,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* Campaigns History Table */}
-      <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-xs">
+      <div className="animate-card-slide-slow rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-xs">
         <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
@@ -333,7 +343,8 @@ export default function ProjectsPage() {
                 <tr>
                   <th className="py-3 px-4 font-semibold">Nama Kampanye</th>
                   <th className="py-3 px-4 font-semibold">Kata Kunci & Lokasi</th>
-                  <th className="py-3 px-4 font-semibold">Total Prospek</th>
+                  <th className="py-3 px-4 font-semibold">Draft Scrape</th>
+                  <th className="py-3 px-4 font-semibold">Pipeline CRM</th>
                   <th className="py-3 px-4 font-semibold">Tanggal Dibuat</th>
                   <th className="py-3 px-4 font-semibold text-right">Aksi</th>
                 </tr>
@@ -343,14 +354,14 @@ export default function ProjectsPage() {
                   <tr
                     key={camp.id}
                     onClick={() => router.push(`/projects/${camp.id}`)}
-                    className="hover:bg-slate-50 cursor-pointer transition-colors"
+                    className="table-row-standard hover:bg-blue-50/50 hover:translate-x-1 transition-all duration-150 cursor-pointer group"
                   >
-                    <td className="py-4 px-4 font-bold text-slate-900 text-sm">
+                    <td className="py-4 px-4 font-bold text-slate-900 group-hover:text-[#004a87] transition-colors text-sm">
                       {camp.name}
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
+                        <span className="px-2 py-0.5 rounded bg-blue-50 text-[#004a87] border border-blue-200 font-semibold">
                           {camp.keyword}
                         </span>
                         <span className="text-slate-600 flex items-center gap-1 font-medium">
@@ -360,9 +371,15 @@ export default function ProjectsPage() {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                        <Layers className="w-3.5 h-3.5 text-amber-600" />
+                        {camp.prospects_count || 0} Draft
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                         <Users className="w-3.5 h-3.5 text-emerald-600" />
-                        {camp.leads_count || 0} Prospek
+                        {camp.leads_count || 0} Deal Aktif
                       </span>
                     </td>
                     <td className="py-4 px-4 text-slate-500 font-mono">
@@ -377,13 +394,13 @@ export default function ProjectsPage() {
                         <Link
                           href={`/projects/${camp.id}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold border border-emerald-200 flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-lg bg-[#004a87] hover:bg-[#003866] text-white font-semibold text-xs transition-colors flex items-center gap-1 shadow-xs"
                         >
-                          Buka Tabel <ArrowRight className="w-3 h-3" />
+                          Skrining & Konversi <ArrowRight className="w-3 h-3" />
                         </Link>
                         <button
                           onClick={(e) => handleDelete(camp.id, e)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                           title="Hapus Kampanye"
                         >
                           <Trash2 className="w-4 h-4" />

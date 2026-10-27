@@ -8,7 +8,6 @@ import {
   ArrowLeft, 
   Download, 
   Search, 
-  Filter, 
   Globe, 
   MapPin, 
   Phone, 
@@ -22,43 +21,71 @@ import {
   Flame,
   ArrowUpDown,
   Sparkles,
-  Send
+  Send,
+  Layers,
+  ArrowRight,
+  UserCheck,
+  XCircle,
+  Clock,
+  Filter,
+  Briefcase
 } from 'lucide-react';
 import { DataStore } from '@/lib/dataStore';
-import { Campaign, Lead, LeadStatus, MessageTemplate } from '@/types/database';
+import { 
+  Campaign, 
+  Lead, 
+  CampaignProspect, 
+  LeadStatus, 
+  CurationStatus, 
+  MessageTemplate 
+} from '@/types/database';
 import { calculateProspectScore, getProspectScoreBadge } from '@/lib/score';
 import BroadcastModal from '@/components/BroadcastModal';
+import { useAuth } from '@/lib/authContext';
 
 function CampaignDetailContent() {
   const params = useParams();
   const router = useRouter();
   const campaignId = params.id as string;
+  const { profile } = useAuth();
+  const actorName = profile?.full_name || 'Tim Marketing';
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [prospects, setProspects] = useState<CampaignProspect[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Filters & Sorting
-  const [searchQuery, setSearchQuery] = useState('');
-  const [websiteFilter, setWebsiteFilter] = useState<'all' | 'noweb' | 'hasweb'>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'score_desc' | 'rating_desc' | 'reviews_desc' | 'name_asc'>('score_desc');
+  // Active Tab: 'drafts' (Scraped Drafts to Screen) vs 'pipeline' (Active CRM Deals)
+  const [activeTab, setActiveTab] = useState<'drafts' | 'pipeline'>('drafts');
 
-  // WhatsApp quick send and broadcast modal state
+  // Filters & Sorting for Drafts
+  const [draftSearch, setDraftSearch] = useState('');
+  const [curationFilter, setCurationFilter] = useState<'all' | CurationStatus>('all');
+  const [selectedProspectIds, setSelectedProspectIds] = useState<string[]>([]);
+  const [convertingId, setConvertingId] = useState<string | null>(null);
+  const [batchConverting, setBatchConverting] = useState(false);
+
+  // Filters & Sorting for Leads
+  const [leadSearch, setLeadSearch] = useState('');
+  const [leadStatusFilter, setLeadStatusFilter] = useState<string>('all');
+
+  // Broadcast modal state
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [camp, allLeads, tmpls] = await Promise.all([
+        const [camp, campProspects, campLeads, tmpls] = await Promise.all([
           DataStore.getCampaignById(campaignId),
+          DataStore.getCampaignProspects(campaignId),
           DataStore.getLeads(campaignId),
           DataStore.getTemplates(),
         ]);
         setCampaign(camp);
-        setLeads(allLeads);
+        setProspects(campProspects);
+        setLeads(campLeads);
         setTemplates(tmpls);
         if (tmpls.length > 0) {
           setSelectedTemplateId(tmpls[0].id);
@@ -74,11 +101,163 @@ function CampaignDetailContent() {
     }
   }, [campaignId]);
 
-  // Status badge style helper for light theme
-  const getStatusBadge = (status: LeadStatus) => {
+  // Reload data helper
+  const reloadData = async () => {
+    const [campProspects, campLeads] = await Promise.all([
+      DataStore.getCampaignProspects(campaignId),
+      DataStore.getLeads(campaignId),
+    ]);
+    setProspects(campProspects);
+    setLeads(campLeads);
+  };
+
+  // Convert Single Prospect to CRM Pipeline
+  const handleConvertSingle = async (prospect: CampaignProspect) => {
+    if (prospect.curation_status === 'converted') return;
+    setConvertingId(prospect.id);
+    try {
+      const createdLead = await DataStore.convertProspectToPipeline(prospect.id, actorName);
+      if (createdLead) {
+        await reloadData();
+        setSelectedProspectIds((prev) => prev.filter((id) => id !== prospect.id));
+      }
+    } catch (err) {
+      alert('Gagal mengonversi prospek ke pipeline.');
+    } finally {
+      setConvertingId(null);
+    }
+  };
+
+  // Batch Convert Selected Prospects
+  const handleBatchConvert = async () => {
+    if (selectedProspectIds.length === 0) return;
+    setBatchConverting(true);
+    try {
+      await DataStore.batchConvertProspectsToPipeline(selectedProspectIds, actorName);
+      await reloadData();
+      setSelectedProspectIds([]);
+    } catch (err) {
+      alert('Gagal mengonversi beberapa prospek.');
+    } finally {
+      setBatchConverting(false);
+    }
+  };
+
+  // Disqualify Prospect
+  const handleDisqualify = async (prospectId: string) => {
+    const reason = prompt('Alasan diskualifikasi prospek ini (opsional):', 'Nomor tidak valid / Tidak relevan');
+    if (reason !== null) {
+      await DataStore.updateProspectCuration(prospectId, 'disqualified', reason);
+      await reloadData();
+    }
+  };
+
+  // Filtered Draft Prospects
+  const filteredDrafts = useMemo(() => {
+    return prospects.filter((p) => {
+      const matchesSearch =
+        p.business_name.toLowerCase().includes(draftSearch.toLowerCase()) ||
+        (p.address && p.address.toLowerCase().includes(draftSearch.toLowerCase())) ||
+        (p.phone && p.phone.includes(draftSearch));
+      const matchesCuration = curationFilter === 'all' ? true : p.curation_status === curationFilter;
+      return matchesSearch && matchesCuration;
+    });
+  }, [prospects, draftSearch, curationFilter]);
+
+  // Filtered Leads
+  const filteredLeads = useMemo(() => {
+    return leads.filter((l) => {
+      const matchesSearch =
+        l.business_name.toLowerCase().includes(leadSearch.toLowerCase()) ||
+        (l.address && l.address.toLowerCase().includes(leadSearch.toLowerCase())) ||
+        (l.phone && l.phone.includes(leadSearch));
+      const matchesStatus = leadStatusFilter === 'all' ? true : l.status === leadStatusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [leads, leadSearch, leadStatusFilter]);
+
+  // Select all visible unconverted drafts
+  const handleToggleSelectAll = () => {
+    const eligible = filteredDrafts.filter((p) => p.curation_status !== 'converted').map((p) => p.id);
+    if (selectedProspectIds.length === eligible.length) {
+      setSelectedProspectIds([]);
+    } else {
+      setSelectedProspectIds(eligible);
+    }
+  };
+
+  // Toggle single selection
+  const handleToggleSelect = (id: string) => {
+    setSelectedProspectIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  // Export to Excel (.xlsx)
+  const handleExportExcel = () => {
+    if (activeTab === 'drafts') {
+      if (filteredDrafts.length === 0) {
+        alert('Tidak ada data draft untuk di-export.');
+        return;
+      }
+      const exportRows = filteredDrafts.map((p, index) => ({
+        No: index + 1,
+        'Skor Prospek (%)': `${p.prospect_score ?? 0}%`,
+        'Status Kurasi': p.curation_status.toUpperCase(),
+        'Nama Bisnis': p.business_name,
+        'Nomor WhatsApp': p.phone || '-',
+        'Punya Website': p.has_website ? 'Ada' : 'Tidak Ada',
+        'URL Website': p.website_url || '-',
+        Alamat: p.address || '-',
+        Rating: p.rating || 0,
+        'Jumlah Ulasan': p.reviews_count || 0,
+        'Link Google Maps': p.gmaps_url || '-',
+        'Alasan Diskualifikasi': p.disqualified_reason || '-',
+      }));
+      const ws = XLSX.utils.json_to_sheet(exportRows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Draft Prospek');
+      XLSX.writeFile(wb, `${campaign?.name || 'campaign'}_drafts_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    } else {
+      if (filteredLeads.length === 0) {
+        alert('Tidak ada data pipeline untuk di-export.');
+        return;
+      }
+      const exportRows = filteredLeads.map((l, index) => ({
+        No: index + 1,
+        'Nama Bisnis': l.business_name,
+        'Nomor WhatsApp': l.phone || '-',
+        Status: l.status,
+        'Nilai Deal (Rp)': l.deal_value || 0,
+        Alamat: l.address || '-',
+        Catatan: l.notes || '-',
+      }));
+      const ws = XLSX.utils.json_to_sheet(exportRows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Pipeline CRM');
+      XLSX.writeFile(wb, `${campaign?.name || 'campaign'}_pipeline_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+  };
+
+  const getCurationBadge = (status: CurationStatus) => {
+    switch (status) {
+      case 'converted':
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+      case 'reviewed':
+        return 'bg-blue-50 text-[#004a87] border-blue-200';
+      case 'disqualified':
+        return 'bg-rose-50 text-rose-800 border-rose-200';
+      default:
+        return 'bg-amber-50 text-amber-800 border-amber-200';
+    }
+  };
+
+  const getLeadStatusBadge = (status: LeadStatus) => {
     switch (status) {
       case 'Closing':
         return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+      case 'Quotation':
+        return 'bg-amber-50 text-amber-800 border-amber-200';
       case 'Follow Up':
         return 'bg-purple-50 text-purple-800 border-purple-200';
       case 'Dihubungi':
@@ -88,111 +267,6 @@ function CampaignDetailContent() {
       default:
         return 'bg-slate-100 text-slate-700 border-slate-200';
     }
-  };
-
-  // Filtered & Sorted Leads
-  const filteredLeads = useMemo(() => {
-    const list = leads.filter((lead) => {
-      // Search text filter
-      const matchesSearch =
-        lead.business_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (lead.address && lead.address.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (lead.phone && lead.phone.includes(searchQuery));
-
-      // Website filter
-      const matchesWeb =
-        websiteFilter === 'all'
-          ? true
-          : websiteFilter === 'noweb'
-          ? !lead.has_website
-          : lead.has_website;
-
-      // Status filter
-      const matchesStatus = statusFilter === 'all' ? true : lead.status === statusFilter;
-
-      return matchesSearch && matchesWeb && matchesStatus;
-    });
-
-    // Sort by selected criteria (default: Highest prospect percentage)
-    return list.sort((a, b) => {
-      const scoreA = typeof a.prospect_score === 'number' ? a.prospect_score : calculateProspectScore(a);
-      const scoreB = typeof b.prospect_score === 'number' ? b.prospect_score : calculateProspectScore(b);
-
-      if (sortBy === 'score_desc') {
-        return scoreB - scoreA;
-      }
-      if (sortBy === 'rating_desc') {
-        return (Number(b.rating) || 0) - (Number(a.rating) || 0);
-      }
-      if (sortBy === 'reviews_desc') {
-        return (Number(b.reviews_count) || 0) - (Number(a.reviews_count) || 0);
-      }
-      if (sortBy === 'name_asc') {
-        return a.business_name.localeCompare(b.business_name);
-      }
-      return 0;
-    });
-  }, [leads, searchQuery, websiteFilter, statusFilter, sortBy]);
-
-  // Export to Excel (.xlsx)
-  const handleExportExcel = () => {
-    if (filteredLeads.length === 0) {
-      alert('Tidak ada data prospek untuk di-export.');
-      return;
-    }
-
-    const exportRows = filteredLeads.map((l, index) => {
-      const score = typeof l.prospect_score === 'number' ? l.prospect_score : calculateProspectScore(l);
-      return {
-        No: index + 1,
-        'Skor Prospek (%)': `${score}%`,
-        'Nama Bisnis': l.business_name,
-        'Nomor WhatsApp': l.phone || '-',
-        'Punya Website': l.has_website ? 'Ada' : 'Tidak Ada',
-        'URL Website': l.website_url || '-',
-        Alamat: l.address || '-',
-        Rating: l.rating || 0,
-        'Jumlah Ulasan': l.reviews_count || 0,
-        'Link Google Maps': l.gmaps_url || '-',
-        Status: l.status,
-        'Nilai Deal (Rp)': l.deal_value || 0,
-        Catatan: l.notes || '-',
-      };
-    });
-
-    const worksheet = XLSX.utils.json_to_sheet(exportRows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Prospek Bisnis');
-
-    const fileName = `${campaign?.name || 'prospek_gmaps'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    XLSX.writeFile(workbook, fileName);
-  };
-
-  // Update lead status directly from table
-  const handleStatusChange = async (leadId: string, newStatus: LeadStatus) => {
-    await DataStore.updateLead(leadId, { status: newStatus });
-    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l)));
-  };
-
-  // Delete lead
-  const handleDeleteLead = async (leadId: string) => {
-    if (confirm('Hapus prospek ini?')) {
-      await DataStore.deleteLead(leadId);
-      setLeads((prev) => prev.filter((l) => l.id !== leadId));
-    }
-  };
-
-  // Generate personalized WhatsApp message
-  const getPreparedMessage = (lead: Lead) => {
-    const tmpl = templates.find((t) => t.id === selectedTemplateId) || templates[0];
-    if (!tmpl) {
-      return `Halo kak ${lead.business_name}, salam kenal dari tim digital agency.`;
-    }
-    return tmpl.body
-      .replace(/{business_name}/g, lead.business_name)
-      .replace(/{rating}/g, String(lead.rating || ''))
-      .replace(/{reviews_count}/g, String(lead.reviews_count || ''))
-      .replace(/{address}/g, lead.address || '');
   };
 
   if (loading) {
@@ -207,21 +281,15 @@ function CampaignDetailContent() {
     return (
       <div className="py-12 text-center space-y-4">
         <p className="text-slate-500">Kampanye tidak ditemukan atau telah dihapus.</p>
-        <Link href="/projects" className="text-emerald-700 hover:underline text-sm inline-block font-semibold">
+        <Link href="/projects" className="text-[#004a87] hover:underline text-sm inline-block font-semibold">
           &larr; Kembali ke Daftar Kampanye
         </Link>
       </div>
     );
   }
 
-  const noWebCount = leads.filter((l) => !l.has_website).length;
-  const hotLeadsCount = leads.filter((l) => {
-    const s = typeof l.prospect_score === 'number' ? l.prospect_score : calculateProspectScore(l);
-    return s >= 80;
-  }).length;
-  const avgScore = leads.length > 0 
-    ? Math.round(leads.reduce((acc, curr) => acc + (typeof curr.prospect_score === 'number' ? curr.prospect_score : calculateProspectScore(curr)), 0) / leads.length) 
-    : 0;
+  const draftUnconvertedCount = prospects.filter((p) => p.curation_status !== 'converted').length;
+  const draftConvertedCount = prospects.filter((p) => p.curation_status === 'converted').length;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -230,16 +298,16 @@ function CampaignDetailContent() {
         <div className="flex items-center gap-3">
           <Link
             href="/projects"
-            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-xs"
+            className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-xs"
             title="Kembali ke Daftar Kampanye"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500">Hasil Scraping Google Maps</span>
+              <span className="text-xs text-slate-500">Kampanye Pencarian</span>
               <span className="text-slate-300">&bull;</span>
-              <span className="text-xs text-emerald-700 font-mono font-semibold">{campaign.location}</span>
+              <span className="text-xs text-[#004a87] font-semibold">{campaign.location}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-0.5 tracking-tight">
               {campaign.name}
@@ -249,341 +317,482 @@ function CampaignDetailContent() {
 
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <button
-            onClick={() => setIsBroadcastOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/10 cursor-pointer"
-          >
-            <Send className="w-4 h-4" />
-            Broadcast WhatsApp
-          </button>
-          <button
             onClick={handleExportExcel}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-semibold text-xs sm:text-sm transition-all shadow-xs cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 transition-colors shadow-xs flex items-center gap-2 cursor-pointer"
           >
-            <Download className="w-4 h-4" />
-            Export ke Excel (.xlsx)
+            <Download className="w-4 h-4 text-slate-500" />
+            Export Excel (.xlsx)
           </button>
         </div>
       </div>
 
-      {/* Summary KPI Badges */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-xl bg-white border border-slate-200 text-center shadow-xs">
-          <p className="text-[11px] uppercase font-semibold text-slate-500">Total Prospek</p>
-          <p className="text-2xl font-extrabold text-slate-900 mt-1">{leads.length}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-white border border-slate-200 text-center shadow-xs">
-          <p className="text-[11px] uppercase font-semibold text-emerald-700 flex items-center justify-center gap-1">
-            <Flame className="w-3.5 h-3.5 text-emerald-600" />
-            Hot Prospek (≥80%)
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+          <div className="flex items-center justify-between text-slate-500 text-xs">
+            <span>Total Hasil Scrape</span>
+            <Layers className="w-4 h-4 text-slate-400" />
+          </div>
+          <p className="text-2xl font-extrabold text-slate-900 mt-2 font-mono">
+            {prospects.length}
           </p>
-          <p className="text-2xl font-extrabold text-emerald-700 mt-1">{hotLeadsCount}</p>
+          <span className="text-[11px] text-slate-400">Prospek dari Google Maps</span>
         </div>
-        <div className="p-4 rounded-xl bg-white border border-slate-200 text-center shadow-xs">
-          <p className="text-[11px] uppercase font-semibold text-amber-700">Tanpa Website</p>
-          <p className="text-2xl font-extrabold text-amber-700 mt-1">{noWebCount}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-white border border-slate-200 text-center shadow-xs">
-          <p className="text-[11px] uppercase font-semibold text-blue-700">Rata-rata Skor %</p>
-          <p className="text-2xl font-extrabold text-blue-700 mt-1">
-            {avgScore}%
+
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+          <div className="flex items-center justify-between text-amber-700 text-xs font-semibold">
+            <span>Menunggu Skrining</span>
+            <Clock className="w-4 h-4 text-amber-600" />
+          </div>
+          <p className="text-2xl font-extrabold text-amber-900 mt-2 font-mono">
+            {draftUnconvertedCount}
           </p>
+          <span className="text-[11px] text-amber-700">Perlu dipilah marketer</span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+          <div className="flex items-center justify-between text-emerald-700 text-xs font-semibold">
+            <span>Dikonversi ke Leads</span>
+            <UserCheck className="w-4 h-4 text-emerald-600" />
+          </div>
+          <p className="text-2xl font-extrabold text-emerald-900 mt-2 font-mono">
+            {draftConvertedCount}
+          </p>
+          <span className="text-[11px] text-emerald-700">Masuk ke database leads</span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+          <div className="flex items-center justify-between text-[#004a87] text-xs font-semibold">
+            <span>Pipeline Deal Aktif</span>
+            <Briefcase className="w-4 h-4 text-[#004a87]" />
+          </div>
+          <p className="text-2xl font-extrabold text-[#004a87] mt-2 font-mono">
+            {leads.length}
+          </p>
+          <span className="text-[11px] text-slate-400">Deal CRM tahap lanjutan</span>
         </div>
       </div>
 
-      {/* Filter, Sort and Template Selector Bar */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama bisnis, alamat, atau nomor WhatsApp..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-slate-300 text-slate-900 placeholder-slate-400 text-xs sm:text-sm focus:outline-none focus:border-emerald-500"
-            />
-          </div>
+      {/* Main Tabs Navigation */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-px">
+        <button
+          onClick={() => setActiveTab('drafts')}
+          className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+            activeTab === 'drafts'
+              ? 'border-[#004a87] text-[#004a87]'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          <span>Draft Skrining Prospek</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full ${
+            activeTab === 'drafts' ? 'bg-blue-100 text-[#004a87]' : 'bg-slate-100 text-slate-600'
+          }`}>
+            {prospects.length}
+          </span>
+        </button>
 
-          {/* Quick Template Picker for WhatsApp Link */}
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-600 shrink-0 font-medium">Template WA:</span>
-            <select
-              value={selectedTemplateId}
-              onChange={(e) => setSelectedTemplateId(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 text-xs focus:outline-none focus:border-emerald-500 max-w-xs truncate cursor-pointer"
-            >
-              {templates.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.title}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Website, Status, and Sort Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
-          {/* Website segment */}
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
-            <button
-              onClick={() => setWebsiteFilter('all')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                websiteFilter === 'all'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Semua ({leads.length})
-            </button>
-            <button
-              onClick={() => setWebsiteFilter('noweb')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                websiteFilter === 'noweb'
-                  ? 'bg-amber-500 text-white shadow-xs'
-                  : 'text-amber-700 hover:text-amber-800'
-              }`}
-            >
-              Tanpa Website ({noWebCount})
-            </button>
-            <button
-              onClick={() => setWebsiteFilter('hasweb')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all ${
-                websiteFilter === 'hasweb'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-blue-700 hover:text-blue-800'
-              }`}
-            >
-              Ada Website ({leads.length - noWebCount})
-            </button>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Sorting Dropdown (Prioritizes Highest % Prospect) */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-600 font-semibold flex items-center gap-1">
-                <ArrowUpDown className="w-3.5 h-3.5 text-emerald-600" />
-                Urutkan:
-              </span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-800 text-xs font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer shadow-xs"
-              >
-                <option value="score_desc">🔥 Skor Prospek Tertinggi (%)</option>
-                <option value="rating_desc">⭐ Rating Google Maps Tertinggi</option>
-                <option value="reviews_desc">💬 Ulasan Terbanyak</option>
-                <option value="name_asc">🔤 Nama Bisnis (A-Z)</option>
-              </select>
-            </div>
-
-            {/* Status selector */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-600 font-medium flex items-center gap-1">
-                <Filter className="w-3.5 h-3.5" />
-                Status:
-              </span>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-1.5 rounded-xl bg-white border border-slate-300 text-slate-800 text-xs focus:outline-none cursor-pointer"
-              >
-                <option value="all">Semua Status</option>
-                <option value="Belum dihubungi">Belum dihubungi</option>
-                <option value="Dihubungi">Dihubungi</option>
-                <option value="Follow Up">Follow Up</option>
-                <option value="Closing">Closing</option>
-                <option value="Ditolak">Ditolak</option>
-              </select>
-            </div>
-          </div>
-        </div>
+        <button
+          onClick={() => setActiveTab('pipeline')}
+          className={`flex items-center gap-2 px-5 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+            activeTab === 'pipeline'
+              ? 'border-[#004a87] text-[#004a87]'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <Briefcase className="w-4 h-4" />
+          <span>Pipeline Deal Aktif CRM</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full ${
+            activeTab === 'pipeline' ? 'bg-blue-100 text-[#004a87]' : 'bg-slate-100 text-slate-600'
+          }`}>
+            {leads.length}
+          </span>
+        </button>
       </div>
 
-      {/* Main Table */}
-      <div className="rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider text-[11px] border-b border-slate-200">
-              <tr>
-                <th className="py-3 px-4 font-semibold">Nama Bisnis & Alamat</th>
-                <th className="py-3 px-4 font-semibold">Skor Prospek (%)</th>
-                <th className="py-3 px-4 font-semibold">WhatsApp Terverifikasi</th>
-                <th className="py-3 px-4 font-semibold">Ketersediaan Web</th>
-                <th className="py-3 px-4 font-semibold">Status CRM</th>
-                <th className="py-3 px-4 font-semibold text-right">Aksi WhatsApp</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredLeads.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    Tidak ada prospek yang cocok dengan kriteria filter.
-                  </td>
-                </tr>
-              ) : (
-                filteredLeads.map((lead) => {
-                  const cleanPhone = lead.phone?.replace(/[^0-9]/g, '') || '';
-                  const waPhone = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
-                  const messageText = getPreparedMessage(lead);
-                  const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(messageText)}`;
-                  
-                  const score = typeof lead.prospect_score === 'number' ? lead.prospect_score : calculateProspectScore(lead);
-                  const scoreMeta = getProspectScoreBadge(score);
+      {/* ========================================================= */}
+      {/* TAB 1: DRAFT PROSPECTS SCREENING VIEW                     */}
+      {/* ========================================================= */}
+      {activeTab === 'drafts' && (
+        <div className="space-y-4">
+          {/* Controls Bar */}
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 w-full md:w-auto flex-1">
+              <div className="relative w-full max-w-sm">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Cari draft prospek, alamat, telepon..."
+                  value={draftSearch}
+                  onChange={(e) => setDraftSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#004a87] focus:ring-1 focus:ring-[#004a87] bg-slate-50/50"
+                />
+              </div>
 
-                  return (
-                    <tr key={lead.id} className="hover:bg-slate-50/70 transition-colors">
-                      {/* Business & Address */}
-                      <td className="py-3.5 px-4 max-w-xs">
-                        <Link
-                          href={`/crm/${lead.id}`}
-                          className="font-bold text-slate-900 hover:text-emerald-700 text-sm block transition-colors"
+              {/* Status Filter */}
+              <div className="flex items-center gap-1.5 text-xs">
+                {(['all', 'draft', 'reviewed', 'disqualified', 'converted'] as const).map((st) => (
+                  <button
+                    key={st}
+                    onClick={() => setCurationFilter(st)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
+                      curationFilter === st
+                        ? 'bg-[#004a87] text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {st === 'all' ? 'Semua' : st}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Batch Action Bar */}
+            {selectedProspectIds.length > 0 && (
+              <div className="flex items-center gap-3 w-full md:w-auto justify-end bg-blue-50/80 px-4 py-2 rounded-xl border border-blue-200">
+                <span className="text-xs font-bold text-[#004a87]">
+                  {selectedProspectIds.length} dipilih
+                </span>
+                <button
+                  onClick={handleBatchConvert}
+                  disabled={batchConverting}
+                  className="px-4 py-1.5 rounded-lg bg-[#004a87] hover:bg-[#003866] text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  {batchConverting ? 'Mengonversi ke Leads...' : 'Convert to Leads'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Draft Prospects Table */}
+          <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden">
+            {filteredDrafts.length === 0 ? (
+              <div className="p-12 text-center text-slate-400">
+                <Layers className="w-10 h-10 mx-auto text-slate-300 mb-3" />
+                <p className="text-sm font-semibold text-slate-700">Tidak ada draft prospek yang cocok</p>
+                <p className="text-xs text-slate-400 mt-1">Coba sesuaikan filter status atau kata kunci pencarian.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                      <th className="py-3 px-4 w-10 text-center">
+                        <input
+                          type="checkbox"
+                          checked={
+                            selectedProspectIds.length > 0 &&
+                            selectedProspectIds.length ===
+                              filteredDrafts.filter((p) => p.curation_status !== 'converted').length
+                          }
+                          onChange={handleToggleSelectAll}
+                          className="w-4 h-4 rounded border-slate-300 text-[#004a87] focus:ring-[#004a87] cursor-pointer"
+                        />
+                      </th>
+                      <th className="py-3 px-4 font-semibold">Institusi / Bisnis</th>
+                      <th className="py-3 px-4 font-semibold">WhatsApp & Kontak</th>
+                      <th className="py-3 px-4 font-semibold">Website & G-Maps</th>
+                      <th className="py-3 px-4 font-semibold text-center">Skor</th>
+                      <th className="py-3 px-4 font-semibold text-center">Status Kurasi</th>
+                      <th className="py-3 px-4 font-semibold text-right">Aksi Skrining</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredDrafts.map((prospect) => {
+                      const isConverted = prospect.curation_status === 'converted';
+                      const isSelected = selectedProspectIds.includes(prospect.id);
+                      const isConverting = convertingId === prospect.id;
+
+                      return (
+                        <tr
+                          key={prospect.id}
+                          className={`table-row-standard hover:bg-blue-50/50 hover:translate-x-1 transition-all duration-150 group ${
+                            isSelected ? 'bg-blue-50/70' : ''
+                          }`}
                         >
-                          {lead.business_name}
-                        </Link>
-                        <p className="text-slate-500 text-[11px] truncate mt-0.5">{lead.address || '-'}</p>
-                        {lead.gmaps_url && (
-                          <a
-                            href={lead.gmaps_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[10px] text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1 mt-1 font-medium"
-                          >
-                            Buka di Google Maps <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        )}
-                      </td>
-
-                      {/* Prospect Potential Score % */}
-                      <td className="py-3.5 px-4 min-w-[130px]">
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="font-extrabold text-sm text-slate-900 font-mono">
-                              {score}%
-                            </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${scoreMeta.badgeClass}`}>
-                              {scoreMeta.tag}
-                            </span>
-                          </div>
-                          {/* Visual Progress Bar */}
-                          <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${scoreMeta.barColor}`}
-                              style={{ width: `${score}%` }}
+                          {/* Checkbox */}
+                          <td className="py-3 px-4 text-center">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              disabled={isConverted}
+                              onChange={() => handleToggleSelect(prospect.id)}
+                              className="w-4 h-4 rounded border-slate-300 text-[#004a87] focus:ring-[#004a87] cursor-pointer disabled:opacity-30"
                             />
-                          </div>
-                        </div>
-                      </td>
+                          </td>
 
-                      {/* Phone & Rating */}
-                      <td className="py-3.5 px-4">
-                        <div className="space-y-1">
-                          {lead.phone ? (
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono font-semibold">
-                              <Phone className="w-3 h-3 text-emerald-600" />
-                              {lead.phone}
+                          {/* Business Info */}
+                          <td className="py-3 px-4">
+                            <div className="space-y-0.5">
+                              <p className="font-bold text-slate-900 group-hover:text-[#004a87] transition-colors text-sm">
+                                {prospect.business_name}
+                              </p>
+                              <p className="text-slate-500 flex items-center gap-1 text-[11px]">
+                                <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                                <span className="truncate max-w-xs">{prospect.address || 'Alamat tidak terdeteksi'}</span>
+                              </p>
+                              {prospect.category && (
+                                <span className="inline-block text-[10px] text-slate-400">
+                                  {prospect.category}
+                                </span>
+                              )}
                             </div>
-                          ) : (
-                            <span className="text-slate-400 italic">Tanpa Nomor</span>
-                          )}
-                          <div className="flex items-center gap-1 font-semibold text-amber-600 text-[11px]">
-                            <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                            <span>{lead.rating || 'N/A'}</span>
-                            <span className="text-slate-400 font-normal">({lead.reviews_count || 0})</span>
-                          </div>
-                        </div>
-                      </td>
+                          </td>
 
-                      {/* Website */}
-                      <td className="py-3.5 px-4">
-                        {lead.has_website ? (
-                          <a
-                            href={lead.website_url || '#'}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition-colors"
-                          >
-                            <Globe className="w-3 h-3" />
-                            Ada Website
-                          </a>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                            Tanpa Website
-                          </span>
-                        )}
-                      </td>
+                          {/* WhatsApp & Rating */}
+                          <td className="py-3 px-4">
+                            <div className="space-y-1">
+                              {prospect.phone ? (
+                                <a
+                                  href={`https://wa.me/${prospect.phone.replace(/[^0-9]/g, '')}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 font-mono font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 text-xs"
+                                  title="Chat WhatsApp"
+                                >
+                                  <Phone className="w-3 h-3 text-emerald-600" />
+                                  {prospect.phone}
+                                </a>
+                              ) : (
+                                <span className="text-slate-400 italic text-[11px]">Tidak ada telepon</span>
+                              )}
+                              {prospect.rating && (
+                                <div className="flex items-center gap-1 text-[11px] text-amber-600 font-semibold">
+                                  <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                                  <span>{prospect.rating}</span>
+                                  <span className="text-slate-400 font-normal">({prospect.reviews_count || 0})</span>
+                                </div>
+                              )}
+                            </div>
+                          </td>
 
-                      {/* Status Dropdown */}
-                      <td className="py-3.5 px-4">
-                        <select
-                          value={lead.status}
-                          onChange={(e) => handleStatusChange(lead.id, e.target.value as LeadStatus)}
-                          className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border focus:outline-none cursor-pointer bg-white ${getStatusBadge(
-                            lead.status
-                          )}`}
-                        >
-                          <option value="Belum dihubungi">Belum dihubungi</option>
-                          <option value="Dihubungi">Dihubungi</option>
-                          <option value="Follow Up">Follow Up</option>
-                          <option value="Closing">Closing</option>
-                          <option value="Ditolak">Ditolak</option>
-                        </select>
-                      </td>
+                          {/* Website & Maps */}
+                          <td className="py-3 px-4">
+                            <div className="space-y-1">
+                              {prospect.has_website ? (
+                                <a
+                                  href={prospect.website_url || '#'}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 text-[11px] text-blue-700 hover:underline"
+                                >
+                                  <Globe className="w-3 h-3" />
+                                  <span>Ada Website</span>
+                                </a>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                  Tanpa Web
+                                </span>
+                              )}
+                              {prospect.gmaps_url && (
+                                <div>
+                                  <a
+                                    href={prospect.gmaps_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-1"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                    <span>Google Maps</span>
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          </td>
 
-                      {/* Actions */}
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                          {/* Score */}
+                          <td className="py-3 px-4 text-center">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold font-mono bg-amber-50 text-amber-900 border border-amber-200">
+                              <Flame className="w-3 h-3 text-amber-600" />
+                              {prospect.prospect_score ?? 85}%
+                            </span>
+                          </td>
+
+                          {/* Curation Status */}
+                          <td className="py-3 px-4 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border capitalize ${getCurationBadge(prospect.curation_status)}`}>
+                              {prospect.curation_status}
+                            </span>
+                          </td>
+
+                          {/* Action Column */}
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {isConverted ? (
+                                <Link
+                                  href={`/crm/${prospect.converted_lead_id || ''}`}
+                                  className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold text-xs border border-emerald-200 flex items-center gap-1"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                  Buka di CRM
+                                </Link>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => handleConvertSingle(prospect)}
+                                    disabled={isConverting}
+                                    className="px-3 py-1.5 rounded-lg bg-[#004a87] hover:bg-[#003866] text-white font-bold text-xs transition-colors flex items-center gap-1 shadow-xs cursor-pointer disabled:opacity-50"
+                                    title="Konversi prospek ini menjadi data Lead resmi"
+                                  >
+                                    <UserCheck className="w-3.5 h-3.5" />
+                                    {isConverting ? 'Mengonversi...' : 'Convert to Leads'}
+                                  </button>
+                                  {prospect.curation_status !== 'disqualified' && (
+                                    <button
+                                      onClick={() => handleDisqualify(prospect.id)}
+                                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                      title="Diskualifikasi prospek ini"
+                                    >
+                                      <XCircle className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB 2: ACTIVE PIPELINE LEADS VIEW                         */}
+      {/* ========================================================= */}
+      {activeTab === 'pipeline' && (
+        <div className="space-y-4">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="relative w-full max-w-sm">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Cari deal aktif, PIC, alamat..."
+                value={leadSearch}
+                onChange={(e) => setLeadSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#004a87] focus:ring-1 focus:ring-[#004a87] bg-slate-50/50"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 text-xs flex-wrap">
+              {(['all', 'Belum dihubungi', 'Dihubungi', 'Follow Up', 'Quotation', 'Closing', 'Ditolak'] as const).map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setLeadStatusFilter(st)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    leadStatusFilter === st
+                      ? 'bg-[#004a87] text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {st === 'all' ? 'Semua Tahap' : st}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden">
+            {filteredLeads.length === 0 ? (
+              <div className="p-12 text-center text-slate-400">
+                <Briefcase className="w-10 h-10 mx-auto text-slate-300 mb-3" />
+                <p className="text-sm font-semibold text-slate-700">Belum ada deal aktif di pipeline kampanye ini</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Pindah ke tab <strong>Draft Skrining Prospek</strong> lalu pilih dan konversi prospek yang potensial.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-600 uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                      <th className="py-3 px-4 font-semibold">Institusi / Klien</th>
+                      <th className="py-3 px-4 font-semibold">WhatsApp Utama</th>
+                      <th className="py-3 px-4 font-semibold">Tahap Deal Pipeline</th>
+                      <th className="py-3 px-4 font-semibold">Potensi Nilai Deal</th>
+                      <th className="py-3 px-4 font-semibold">Catatan Kemitraan</th>
+                      <th className="py-3 px-4 font-semibold text-right">Aksi 360°</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredLeads.map((lead) => (
+                      <tr
+                        key={lead.id}
+                        className="hover:bg-slate-50 transition-colors cursor-pointer"
+                        onClick={() => router.push(`/crm/${lead.id}`)}
+                      >
+                        <td className="py-4 px-4 font-bold text-slate-900 text-sm">
+                          {lead.business_name}
+                          <p className="text-[11px] font-normal text-slate-500 truncate max-w-xs mt-0.5">
+                            {lead.address || 'Alamat institusi'}
+                          </p>
+                        </td>
+                        <td className="py-4 px-4">
                           {lead.phone ? (
                             <a
-                              href={waUrl}
+                              href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-all shadow-xs cursor-pointer text-xs"
-                              title="Kirim Pesan WhatsApp"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 font-mono font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 hover:bg-emerald-100 text-xs"
                             >
-                              <MessageSquare className="w-3.5 h-3.5" />
-                              Hubungi WA
+                              <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                              {lead.phone}
                             </a>
                           ) : (
-                            <span className="text-slate-400 text-xs italic">Tanpa WA</span>
+                            <span className="text-slate-400 italic text-[11px]">-</span>
                           )}
-
-                          <button
-                            onClick={() => handleDeleteLead(lead.id)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                            title="Hapus Prospek"
+                        </td>
+                        <td className="py-4 px-4">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${getLeadStatusBadge(lead.status)}`}>
+                            {lead.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 font-mono font-semibold text-slate-900">
+                          {lead.deal_value ? `Rp ${Number(lead.deal_value).toLocaleString('id-ID')}` : 'Rp 0'}
+                        </td>
+                        <td className="py-4 px-4 text-slate-500 max-w-xs truncate text-[11px]">
+                          {lead.notes || 'Belum ada catatan khusus'}
+                        </td>
+                        <td className="py-4 px-4 text-right">
+                          <Link
+                            href={`/crm/${lead.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="px-3 py-1.5 rounded-lg bg-blue-50 text-[#004a87] hover:bg-blue-100 font-bold text-xs border border-blue-200 inline-flex items-center gap-1"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                            Detail 360° <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* WhatsApp Broadcast Modal */}
-      <BroadcastModal
-        isOpen={isBroadcastOpen}
-        onClose={() => setIsBroadcastOpen(false)}
-        leads={leads}
-        templates={templates}
-        onLeadsUpdated={async () => {
-          const updated = await DataStore.getLeads(campaignId);
-          setLeads(updated);
-        }}
-      />
+      {/* Broadcast Modal */}
+      {isBroadcastOpen && (
+        <BroadcastModal
+          isOpen={isBroadcastOpen}
+          leads={leads}
+          templates={templates}
+          onClose={() => setIsBroadcastOpen(false)}
+        />
+      )}
     </div>
   );
 }
 
 export default function CampaignDetailPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-slate-500 text-sm">Memuat kampanye...</div>}>
+    <Suspense fallback={<div className="py-20 text-center text-slate-500">Memuat kampanye...</div>}>
       <CampaignDetailContent />
     </Suspense>
   );

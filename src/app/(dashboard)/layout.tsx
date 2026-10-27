@@ -1,6 +1,12 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
+import DashboardContainer from '@/components/DashboardContainer';
 import PinProtection from '@/components/PinProtection';
+import AuthGuard from '@/components/AuthGuard';
+import { SidebarProvider } from '@/lib/sidebarContext';
+
+// Skip instant navigation validation for guarded layout (resolved Next.js 16 Turbopack insight)
+export const instant = false;
 
 export default function DashboardLayout({
   children,
@@ -8,18 +14,20 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <PinProtection>
-      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-emerald-500 selection:text-white">
-        {/* Sidebar (Desktop fixed left, Mobile drawer) */}
-        <Sidebar />
+    <AuthGuard>
+      <PinProtection>
+        <SidebarProvider>
+          <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col lg:flex-row font-sans selection:bg-amber-500 selection:text-slate-900">
+            {/* Modern Floating Rounded Pill Sidebar */}
+            <Sidebar />
 
-        {/* Main Content Area */}
-        <div className="flex-1 lg:pl-72 flex flex-col min-w-0">
-          <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
-            {children}
-          </main>
-        </div>
-      </div>
-    </PinProtection>
+            {/* Smooth Adaptive Main Content Area */}
+            <DashboardContainer>
+              {children}
+            </DashboardContainer>
+          </div>
+        </SidebarProvider>
+      </PinProtection>
+    </AuthGuard>
   );
 }
