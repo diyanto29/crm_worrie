@@ -255,7 +255,7 @@ export default function SettingsPage() {
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   // PIN Protection State
-  const [pinEnabled, setPinEnabled] = useState(true);
+  const [pinEnabled, setPinEnabled] = useState(false);
   const [currentPin, setCurrentPin] = useState('123456');
   const [newPin, setNewPin] = useState('');
   const [pinSuccess, setPinSuccess] = useState(false);

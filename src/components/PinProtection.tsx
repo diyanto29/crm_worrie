@@ -11,7 +11,7 @@ const DEFAULT_PIN = '123456';
 export function isPinProtectionEnabled(): boolean {
   if (typeof window === 'undefined') return false;
   const stored = localStorage.getItem(PIN_ENABLED_KEY);
-  return stored !== 'false'; // default is true
+  return stored === 'true'; // default is false (disabled)
 }
 
 export function getStoredPin(): string {
