@@ -5,8 +5,8 @@ import PinProtection from '@/components/PinProtection';
 import AuthGuard from '@/components/AuthGuard';
 import { SidebarProvider } from '@/lib/sidebarContext';
 
-// Skip instant navigation validation for guarded layout (resolved Next.js 16 Turbopack insight)
-export const instant = false;
+// Dynamic server rendering for guarded dashboard pages
+export const dynamic = 'force-dynamic';
 
 export default function DashboardLayout({
   children,
