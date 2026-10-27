@@ -577,6 +577,7 @@ export const DataStore = {
       gmaps_url: prospect.gmaps_url,
       status: 'Belum dihubungi',
       deal_value: 0,
+      assigned_to: actorName || null,
       notes: `Dikonversi dari draft scraping. Skor awal: ${prospect.prospect_score ?? 0}%.`,
       prospect_score: prospect.prospect_score,
     };

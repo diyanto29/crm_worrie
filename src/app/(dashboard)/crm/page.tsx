@@ -170,6 +170,12 @@ export default function CRMPage() {
     reloadData();
   }, []);
 
+  useEffect(() => {
+    if (profile?.full_name && !newLeadAssignedTo) {
+      setNewLeadAssignedTo(profile.full_name);
+    }
+  }, [profile]);
+
   const handleStatusChange = async (leadId: string, newStatus: LeadStatus) => {
     if (newStatus === 'Ditolak') {
       setLostReasonLeadId(leadId);
@@ -267,7 +273,7 @@ export default function CRMPage() {
         address: newLeadAddress.trim() || 'Indonesia',
         deal_value: Number(newLeadDealValue) || 0,
         status: targetStatus,
-        assigned_to: newLeadAssignedTo || null,
+        assigned_to: newLeadAssignedTo || profile?.full_name || null,
         notes: `Didaftarkan cepat dari Pipeline Kanban (${targetStatus}).`,
       }, actorName);
 
@@ -275,7 +281,7 @@ export default function CRMPage() {
       setNewLeadPhone('');
       setNewLeadAddress('');
       setNewLeadDealValue(0);
-      setNewLeadAssignedTo('');
+      setNewLeadAssignedTo(profile?.full_name || '');
       setQuickAddColumnStatus(null);
       await reloadData();
     } catch (err) {

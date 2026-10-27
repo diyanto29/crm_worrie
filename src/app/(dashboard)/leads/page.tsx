@@ -108,6 +108,13 @@ export default function LeadsPage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (profile?.full_name) {
+      if (!formAssignedTo) setFormAssignedTo(profile.full_name);
+      if (!defaultImportPic) setDefaultImportPic(profile.full_name);
+    }
+  }, [profile]);
+
   const handleCreateLead = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formBusinessName.trim() || !formPhone.trim() || !formAddress.trim()) {
@@ -130,18 +137,18 @@ export default function LeadsPage() {
         gmaps_url: null,
         status: formStatus,
         deal_value: Number(formDealValue) || 0,
-        assigned_to: formAssignedTo || null,
+        assigned_to: formAssignedTo || profile?.full_name || null,
         notes: formNotes.trim() || 'Lead ditambahkan secara manual ke database.',
       }, actorName);
 
       if (created) {
-        // Reset form
+        // Reset form (pertahankan default PIC ke diri sendiri)
         setFormBusinessName('');
         setFormAddress('');
         setFormPhone('');
         setFormStatus('Belum dihubungi');
         setFormDealValue(0);
-        setFormAssignedTo('');
+        setFormAssignedTo(profile?.full_name || '');
         setFormWebsiteUrl('');
         setFormNotes('');
         setIsAddModalOpen(false);
@@ -335,7 +342,7 @@ export default function LeadsPage() {
             primary_phone: item.phone,
             status: item.status,
             deal_value: item.deal_value,
-            assigned_to: item.assigned_to || defaultImportPic || null,
+            assigned_to: item.assigned_to || defaultImportPic || profile?.full_name || null,
             rating: 4.8,
             reviews_count: 5,
             notes: item.notes || 'Diimpor massal via Excel/CSV',
