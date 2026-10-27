@@ -182,12 +182,15 @@ export default function CRMPage() {
       return;
     }
 
+    const currentLead = leads.find((l) => l.id === leadId);
+    const oldStatus = currentLead?.status || 'Tahap Sebelumnya';
+
     await DataStore.updateLead(leadId, { status: newStatus });
     await DataStore.createLeadActivity({
       lead_id: leadId,
       activity_type: 'stage_changed',
-      title: `Tahap Dialihkan ke: ${newStatus}`,
-      description: `Status prospek dipindahkan di Papan Kanban.`,
+      title: `Tahap Pipeline Berubah: ${oldStatus} → ${newStatus}`,
+      description: `Status prospek dipindahkan dari "${oldStatus}" ke "${newStatus}" melalui Papan Kanban CRM.`,
       actor_name: actorName,
     });
     setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l)));
