@@ -253,26 +253,64 @@ export const DataStore = {
       const score = typeof item.prospect_score === 'number' && item.prospect_score > 0
         ? item.prospect_score
         : calculateProspectScore(item);
+      const maybeLead = item as Partial<Lead>;
+      const isItemUuid = maybeLead.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(maybeLead.id);
+      const newUuid = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined;
       return {
         ...item,
         prospect_score: score,
-        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `lead-${Date.now()}-${idx}`,
+        id: isItemUuid && maybeLead.id ? maybeLead.id : (newUuid || `lead-${Date.now()}-${idx}`),
         created_at: new Date().toISOString(),
       };
     });
 
     if (isSupabaseConfigured && supabase) {
       try {
-        const supabasePayload = leadsWithMeta.map(({ prospect_score, ...rest }) => rest);
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const supabasePayload = leadsWithMeta.map((lead) => {
+          const payload: Record<string, unknown> = {
+            business_name: lead.business_name,
+            address: lead.address || null,
+            phone: lead.phone || null,
+            primary_phone: lead.primary_phone || lead.phone || null,
+            rating: typeof lead.rating === 'number' ? lead.rating : null,
+            reviews_count: typeof lead.reviews_count === 'number' ? lead.reviews_count : 0,
+            has_website: Boolean(lead.has_website),
+            website_url: lead.website_url || null,
+            gmaps_url: lead.gmaps_url || null,
+            status: lead.status || 'Belum dihubungi',
+            stage: lead.stage || lead.status || 'Belum dihubungi',
+            deal_value: typeof lead.deal_value === 'number' ? lead.deal_value : 0,
+            assigned_to: lead.assigned_to ? String(lead.assigned_to).trim() : null,
+            notes: lead.notes || null,
+            prospect_score: typeof lead.prospect_score === 'number' ? lead.prospect_score : 0,
+            created_at: lead.created_at,
+          };
+
+          if (lead.id && uuidRegex.test(lead.id)) {
+            payload.id = lead.id;
+          }
+          if (lead.campaign_id && uuidRegex.test(lead.campaign_id)) {
+            payload.campaign_id = lead.campaign_id;
+          }
+          if (lead.source_prospect_id && uuidRegex.test(lead.source_prospect_id)) {
+            payload.source_prospect_id = lead.source_prospect_id;
+          }
+
+          return payload;
+        });
+
         const { data, error } = await supabase.from('leads').insert(supabasePayload).select();
         if (!error && data) {
           return data.map(ensureLeadScore);
         }
         if (error) {
           console.error('Supabase createLeadsBulk error:', error);
+          return [];
         }
       } catch (e) {
-        console.error('Supabase createLeadsBulk error:', e);
+        console.error('Supabase createLeadsBulk exception:', e);
+        return [];
       }
     }
 
@@ -287,23 +325,31 @@ export const DataStore = {
     const lead = created[0] || null;
     if (lead) {
       if (newLead.phone) {
-        await this.createLeadContact({
-          lead_id: lead.id,
-          name: `PIC / Narahubung ${lead.business_name}`,
-          role: 'Lainnya',
-          phone: newLead.phone,
-          email: null,
-          is_primary: true,
-          notes: 'Kontak utama yang didaftarkan saat pembuatan Lead',
-        }, actorName);
+        try {
+          await this.createLeadContact({
+            lead_id: lead.id,
+            name: `PIC / Narahubung ${lead.business_name}`,
+            role: 'Lainnya',
+            phone: newLead.phone,
+            email: null,
+            is_primary: true,
+            notes: 'Kontak utama yang didaftarkan saat pembuatan Lead',
+          }, actorName);
+        } catch (contactErr) {
+          console.warn('Failed to auto-create primary contact:', contactErr);
+        }
       }
-      await this.createLeadActivity({
-        lead_id: lead.id,
-        activity_type: 'note_created',
-        title: 'Lead Baru Ditambahkan',
-        description: `Lead "${lead.business_name}" berhasil didaftarkan ke Database Leads oleh ${actorName}.`,
-        actor_name: actorName,
-      });
+      try {
+        await this.createLeadActivity({
+          lead_id: lead.id,
+          activity_type: 'note_created',
+          title: 'Lead Baru Ditambahkan',
+          description: `Lead "${lead.business_name}" berhasil didaftarkan ke Database Leads oleh ${actorName}.`,
+          actor_name: actorName,
+        });
+      } catch (actErr) {
+        console.warn('Failed to auto-create lead activity:', actErr);
+      }
     }
     return lead;
   },

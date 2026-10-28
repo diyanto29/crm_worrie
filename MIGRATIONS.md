@@ -6,6 +6,15 @@ Dokumentasi ini mencatat riwayat perubahan dan penambahan skema database (*datab
 
 ## Riwayat Migrasi (Migration History)
 
+### 📌 [2026-10-28] - Perbaikan Tipe Kolom assigned_to & Fleksibilitas RLS Leads
+* **File Migrasi:** [`supabase/migrations/20261028175500_fix_leads_assigned_to_type_and_rls.sql`](supabase/migrations/20261028175500_fix_leads_assigned_to_type_and_rls.sql)
+* **Tanggal:** 28 Oktober 2026
+* **Status:** Ready to Apply
+* **Tipe Perubahan:** Mengubah tipe kolom `public.leads.assigned_to` dari `uuid references profiles(id)` menjadi `text`, serta mengizinkan policy RLS penuh pada tabel CRM operasional (`leads`, `lead_contacts`, `lead_activities`, `campaign_prospects`).
+* **Tujuan:** Memperbaiki kegagalan insert lead manual dan convert prospect yang terjadi karena nilai nama PIC teks ("Diyanto", "Tim Sales Worrie") ditolak oleh kolom bertipe UUID (`invalid input syntax for type uuid`).
+
+---
+
 ### 📌 [2026-10-28] - Hardening Row Level Security (RLS) & Anti-Privilege Escalation
 * **File Migrasi:** [`supabase/migrations/20261028174500_hardening_rls_security_policies.sql`](supabase/migrations/20261028174500_hardening_rls_security_policies.sql)
 * **Tanggal:** 28 Oktober 2026
