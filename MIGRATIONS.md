@@ -6,6 +6,15 @@ Dokumentasi ini mencatat riwayat perubahan dan penambahan skema database (*datab
 
 ## Riwayat Migrasi (Migration History)
 
+### 📌 [2026-10-28] - Hardening Row Level Security (RLS) & Anti-Privilege Escalation
+* **File Migrasi:** [`supabase/migrations/20261028174500_hardening_rls_security_policies.sql`](supabase/migrations/20261028174500_hardening_rls_security_policies.sql)
+* **Tanggal:** 28 Oktober 2026
+* **Status:** Ready to Apply
+* **Tipe Perubahan:** Pengetatan RLS Kebijakan `authenticated`, Trigger `prevent_self_role_escalation`, Proteksi Khusus `app_settings` (Admin/Superadmin Only)
+* **Tujuan:** Menutup celah permissive `USING (true)` pada Supabase PostgREST API, memastikan hanya pengguna terautentikasi yang dapat mengakses data bisnis, serta mencegah pengguna non-admin menaikkan hak akses (role) mereka sendiri.
+
+---
+
 ### 📌 [2026-10-27] - Injeksi Data Awal Resmi Kemitraan B2B (Initial CRM Seed)
 * **File Migrasi:** [`supabase/migrations/20261027200500_seed_initial_crm_b2b_data.sql`](supabase/migrations/20261027200500_seed_initial_crm_b2b_data.sql)
 * **Tanggal:** 27 Oktober 2026

@@ -42,9 +42,15 @@ export async function middleware(request: NextRequest) {
   // Rute publik yang boleh diakses tanpa login
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/auth');
 
-  // 1. KEAMANAN 1: Proteksi URL Dashboard (Cegah URL Injection tanpa Login)
-  // Jika user belum login dan mencoba mengakses rute internal dashboard
+  // 1. KEAMANAN 1: Proteksi URL Dashboard & API (Cegah Akses tanpa Login)
+  // Jika request ke endpoint API tanpa login, kembalikan response 401 Unauthorized JSON
   if (!user && !isAuthRoute) {
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Sesi login diperlukan untuk mengakses endpoint ini.' },
+        { status: 401 }
+      );
+    }
     url.pathname = '/login';
     url.searchParams.set('next', pathname);
     return NextResponse.redirect(url);

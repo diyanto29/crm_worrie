@@ -42,6 +42,13 @@ export async function POST(req: Request) {
       cleanPhone = cleanPhone.substring(1);
     }
 
+    if (cleanPhone.length < 10 || cleanPhone.length > 16) {
+      return NextResponse.json(
+        { success: false, error: 'Format nomor WhatsApp tidak valid (panjang nomor 10-16 digit).' },
+        { status: 400 }
+      );
+    }
+
     // Direct WhatsApp web/app URL link for instant 1-click fallback
     const directWaUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 

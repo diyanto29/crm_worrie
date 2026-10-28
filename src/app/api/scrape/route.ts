@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import fs from 'fs';
 import { calculateProspectScore } from '@/lib/score';
 
@@ -50,9 +50,9 @@ function extractValidWhatsApp(text: string): string | null {
 function scrapeLiveGoogleMaps(query: string, chromePath: string, waOnly: boolean = true): Promise<any[]> {
   return new Promise((resolve) => {
     const url = `https://www.google.com/maps/search/${encodeURIComponent(query)}?hl=id`;
-    const cmd = `"${chromePath}" --headless --disable-gpu --no-sandbox --dump-dom "${url}"`;
+    const args = ['--headless', '--disable-gpu', '--no-sandbox', '--dump-dom', url];
 
-    exec(cmd, { maxBuffer: 30 * 1024 * 1024, timeout: 15000 }, (err, stdout) => {
+    execFile(chromePath, args, { maxBuffer: 30 * 1024 * 1024, timeout: 15000 }, (err, stdout) => {
       if (err || !stdout) {
         return resolve([]);
       }
