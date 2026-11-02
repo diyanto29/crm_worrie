@@ -32,7 +32,7 @@ export default function ProjectsPage() {
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
   const [maxResults, setMaxResults] = useState(20);
-  const [waOnly, setWaOnly] = useState(true);
+  const [waOnly, setWaOnly] = useState(false);
 
   // Modal extraction state
   const [isExtracting, setIsExtracting] = useState(false);
@@ -246,7 +246,11 @@ export default function ProjectsPage() {
             </div>
 
             {/* Filter WhatsApp Only Toggle */}
-            <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200/90 flex items-center justify-between">
+            <div className={`p-3 rounded-xl border flex items-center justify-between transition-colors ${
+              waOnly 
+                ? 'bg-emerald-50/80 border-emerald-200/90' 
+                : 'bg-blue-50/70 border-blue-200/80'
+            }`}>
               <label className="flex items-center gap-2.5 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -255,17 +259,23 @@ export default function ProjectsPage() {
                   className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                 />
                 <div className="text-xs">
-                  <span className="font-bold text-emerald-900 flex items-center gap-1.5">
-                    <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
-                    Hanya Simpan Nomor yang Valid di WhatsApp
+                  <span className={`font-bold flex items-center gap-1.5 ${
+                    waOnly ? 'text-emerald-900' : 'text-slate-900'
+                  }`}>
+                    <PhoneCall className={`w-3.5 h-3.5 ${waOnly ? 'text-emerald-600' : 'text-blue-600'}`} />
+                    Khusus Tempat dengan Nomor HP / WhatsApp Saja
                   </span>
                   <p className="text-slate-500 text-[11px] mt-0.5">
-                    Bisnis yang tidak mencantumkan nomor HP WhatsApp (misal hanya telepon kabel kantor atau kosong) akan otomatis <strong>diskip</strong>.
+                    {waOnly 
+                      ? 'Tempat tanpa nomor HP seluler (seperti sekolah/kantor dengan telepon kabel 021/0234) akan diskip.'
+                      : 'Rekomendasi B2B & Sekolah: Semua tempat resmi disimpan (nomor HP WA maupun telepon kabel kantor).'}
                   </p>
                 </div>
               </label>
-              <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider bg-emerald-100 px-2 py-0.5 rounded">
-                Aktif
+              <span className={`text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded ${
+                waOnly ? 'text-emerald-700 bg-emerald-100' : 'text-blue-700 bg-blue-100'
+              }`}>
+                {waOnly ? 'Khusus WA' : 'Semua Kontak'}
               </span>
             </div>
 

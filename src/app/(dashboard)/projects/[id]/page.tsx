@@ -544,16 +544,36 @@ function CampaignDetailContent() {
                           <td className="py-3 px-4">
                             <div className="space-y-1">
                               {prospect.phone ? (
-                                <a
-                                  href={`https://wa.me/${prospect.phone.replace(/[^0-9]/g, '')}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1 font-mono font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 text-xs"
-                                  title="Chat WhatsApp"
-                                >
-                                  <Phone className="w-3 h-3 text-emerald-600" />
-                                  {prospect.phone}
-                                </a>
+                                (() => {
+                                  const digits = prospect.phone.replace(/[^0-9]/g, '');
+                                  const isWaMobile = digits.startsWith('08') || digits.startsWith('628');
+                                  const waUrl = digits.startsWith('08')
+                                    ? `https://wa.me/62${digits.slice(1)}`
+                                    : `https://wa.me/${digits}`;
+
+                                  return isWaMobile ? (
+                                    <a
+                                      href={waUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 font-mono font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 text-xs"
+                                      title="Chat WhatsApp"
+                                    >
+                                      <Phone className="w-3 h-3 text-emerald-600" />
+                                      {prospect.phone}
+                                    </a>
+                                  ) : (
+                                    <a
+                                      href={`tel:${prospect.phone.replace(/[^0-9+]/g, '')}`}
+                                      className="inline-flex items-center gap-1 font-mono font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 hover:bg-slate-200 text-xs"
+                                      title="Telepon Kantor"
+                                    >
+                                      <Phone className="w-3 h-3 text-slate-500" />
+                                      {prospect.phone}
+                                      <span className="text-[10px] text-slate-400 font-sans font-normal">(Kantor)</span>
+                                    </a>
+                                  );
+                                })()
                               ) : (
                                 <span className="text-slate-400 italic text-[11px]">Tidak ada telepon</span>
                               )}
@@ -733,16 +753,38 @@ function CampaignDetailContent() {
                         </td>
                         <td className="py-4 px-4">
                           {lead.phone ? (
-                            <a
-                              href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center gap-1 font-mono font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 hover:bg-emerald-100 text-xs"
-                            >
-                              <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                              {lead.phone}
-                            </a>
+                            (() => {
+                              const digits = lead.phone.replace(/[^0-9]/g, '');
+                              const isWaMobile = digits.startsWith('08') || digits.startsWith('628');
+                              const waUrl = digits.startsWith('08')
+                                ? `https://wa.me/62${digits.slice(1)}`
+                                : `https://wa.me/${digits}`;
+
+                              return isWaMobile ? (
+                                <a
+                                  href={waUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 font-mono font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 hover:bg-emerald-100 text-xs"
+                                  title="Chat WhatsApp"
+                                >
+                                  <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                                  {lead.phone}
+                                </a>
+                              ) : (
+                                <a
+                                  href={`tel:${lead.phone.replace(/[^0-9+]/g, '')}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 font-mono font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 hover:bg-slate-200 text-xs"
+                                  title="Telepon Kantor"
+                                >
+                                  <Phone className="w-3.5 h-3.5 text-slate-500" />
+                                  {lead.phone}
+                                  <span className="text-[10px] text-slate-400 font-sans font-normal">(Kantor)</span>
+                                </a>
+                              );
+                            })()
                           ) : (
                             <span className="text-slate-400 italic text-[11px]">-</span>
                           )}
