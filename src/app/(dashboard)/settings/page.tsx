@@ -195,6 +195,26 @@ create table if not exists public.message_templates (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- 9. Katalog & Daftar Harga Paket Layanan Sekolah
+create table if not exists public.service_packages (
+  id uuid primary key default gen_random_uuid(),
+  category text not null,
+  category_name text not null,
+  name text not null,
+  badge text,
+  target_audience text,
+  description text,
+  setup_fee numeric(15,2) not null default 0,
+  annual_fee numeric(15,2) not null default 0,
+  annual_fee_notes text,
+  features jsonb not null default '[]'::jsonb,
+  is_active boolean not null default true,
+  is_featured boolean not null default false,
+  sort_order integer default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 create table if not exists public.app_settings (
   id uuid primary key default gen_random_uuid(),
   agency_name text default 'Worrie Digital Agency',
@@ -226,6 +246,7 @@ alter table public.quotation_items enable row level security;
 alter table public.lead_activities enable row level security;
 alter table public.lead_tasks enable row level security;
 alter table public.message_templates enable row level security;
+alter table public.service_packages enable row level security;
 alter table public.app_settings enable row level security;
 
 create policy "Allow all profiles" on public.profiles for all using (true);
@@ -238,6 +259,7 @@ create policy "Allow all quotation_items" on public.quotation_items for all usin
 create policy "Allow all lead_activities" on public.lead_activities for all using (true);
 create policy "Allow all lead_tasks" on public.lead_tasks for all using (true);
 create policy "Allow all message_templates" on public.message_templates for all using (true);
+create policy "Allow all service_packages" on public.service_packages for all using (true);
 create policy "Allow all app_settings" on public.app_settings for all using (true);`;
 
 export default function SettingsPage() {

@@ -6,6 +6,15 @@ Dokumentasi ini mencatat riwayat perubahan dan penambahan skema database (*datab
 
 ## Riwayat Migrasi (Migration History)
 
+### 📌 [2026-11-03] - Pembuatan Tabel Katalog & Daftar Harga Paket Layanan Sekolah
+* **File Migrasi:** [`supabase/migrations/20261103191500_create_service_packages_table.sql`](supabase/migrations/20261103191500_create_service_packages_table.sql)
+* **Tanggal:** 03 November 2026
+* **Status:** Ready to Apply
+* **Tipe Perubahan:** Pembuatan tabel baru `public.service_packages`, trigger `set_service_packages_updated_at`, RLS policies, dan initial seed data proposal kemitraan (Website & PPDB, Absensi Guru & HRIS, Bundling, dan Add-on).
+* **Tujuan:** Menyediakan modul katalog harga paket yang fleksibel dan dapat diubah-ubah (CRUD) oleh pengguna, serta menjadi acuan harga standar saat membuat penawaran/quotation bagi institusi pendidikan.
+
+---
+
 ### 📌 [2026-10-28] - Perbaikan Tipe Kolom assigned_to & Fleksibilitas RLS Leads
 * **File Migrasi:** [`supabase/migrations/20261028175500_fix_leads_assigned_to_type_and_rls.sql`](supabase/migrations/20261028175500_fix_leads_assigned_to_type_and_rls.sql)
 * **Tanggal:** 28 Oktober 2026

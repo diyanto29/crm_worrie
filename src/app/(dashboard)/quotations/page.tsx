@@ -217,6 +217,27 @@ export default function QuotationsPage() {
 
   useEffect(() => {
     loadQuotations();
+
+    // Prefill from Service Package if clicked from /packages
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const prefillTitle = params.get('prefill_title');
+      const prefillPrice = params.get('prefill_price');
+      const prefillDesc = params.get('prefill_desc');
+      if (prefillTitle && prefillPrice) {
+        setFormQuoteTitle(prefillTitle);
+        setFormItems([
+          {
+            item_name: prefillTitle.replace('Penawaran Kemitraan: ', ''),
+            description: prefillDesc || '',
+            qty: 1,
+            unit_price: Number(prefillPrice) || 0,
+          },
+        ]);
+        setFormDiscount(0);
+        setIsCreateModalOpen(true);
+      }
+    }
   }, []);
 
   const handleStatusChange = async (quoteId: string, newStatus: QuotationStatus) => {

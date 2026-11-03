@@ -194,3 +194,25 @@ export interface AppSettings {
   sender_number: string | null;
   updated_at: string;
 }
+
+// 7. Katalog Paket Layanan (Website, PPDB, Absensi Guru, Bundling, Addon)
+export type PackageCategory = 'website_ppdb' | 'attendance_hris' | 'bundling' | 'addon' | 'custom';
+
+export interface ServicePackage {
+  id: string;
+  category: PackageCategory;
+  category_name: string;
+  name: string;
+  badge?: string | null;
+  target_audience?: string | null;
+  description?: string | null;
+  setup_fee: number;
+  annual_fee: number;
+  annual_fee_notes?: string | null;
+  features: string[];
+  is_active: boolean;
+  is_featured: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at?: string;
+}

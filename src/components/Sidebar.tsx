@@ -31,7 +31,8 @@ import {
   Moon,
   ShieldCheck,
   Check,
-  BarChart3
+  BarChart3,
+  Package
 } from 'lucide-react';
 import { useAuth } from '@/lib/authContext';
 import { useSidebar } from '@/lib/sidebarContext';
@@ -50,6 +51,7 @@ const mainNavItems: NavItem[] = [
   { name: 'Database Leads', href: '/leads', icon: Building2 },
   { name: 'Pipeline CRM', href: '/crm', icon: Kanban },
   { name: 'Kampanye & Scraper', href: '/projects', icon: Compass },
+  { name: 'Harga Paket', href: '/packages', icon: Package },
   { name: 'Penawaran & MoU', href: '/quotations', icon: FileSpreadsheet },
   { name: 'Agenda Follow-Up', href: '/tasks', icon: Calendar },
   { name: 'Laporan & Analitik', href: '/reports', icon: BarChart3 },

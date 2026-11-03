@@ -13,7 +13,8 @@ import {
   LeadTask,
   CurationStatus,
   QuotationStatus,
-  UserProfile
+  UserProfile,
+  ServicePackage
 } from '@/types/database';
 import { calculateProspectScore } from './score';
 
@@ -43,6 +44,268 @@ const DEFAULT_TEMPLATES: MessageTemplate[] = [
     title: 'Promo Khusus Minggu Ini',
     body: 'Kabar baik untuk pemilik *{business_name}*! Minggu ini kami sedang ada promo pembuatan website bisnis kilat (2 hari jadi) + bonus integrasi WhatsApp dan Google Maps SEO. Kuota tersisa 2 slot kak, berminat info lengkapnya?',
     created_at: new Date(Date.now() - 86400000).toISOString(),
+  },
+];
+
+export const DEFAULT_SERVICE_PACKAGES: ServicePackage[] = [
+  // 1. Website & PPDB Online Sekolah
+  {
+    id: 'pkg-web-basic',
+    category: 'website_ppdb',
+    category_name: 'Website & PPDB Online Sekolah',
+    name: 'Basic (Profile)',
+    badge: 'Starter',
+    target_audience: 'TK / PAUD / Kursus Kecil',
+    description: 'Website profil resmi responsif untuk branding dan sarana informasi publik dasar institusi.',
+    setup_fee: 3000000,
+    annual_fee: 1200000,
+    annual_fee_notes: 'Domain .sch.id / .com (gratis tahun 1) & Cloud Hosting',
+    features: [
+      'Website Profil & Responsif (Mobile & Desktop)',
+      'Domain .sch.id / .com gratis thn 1',
+      'Sistem PPDB via Form WhatsApp',
+      'Batas revisi desain 2 kali',
+      'Panduan operasional website',
+    ],
+    is_active: true,
+    is_featured: false,
+    sort_order: 1,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+  {
+    id: 'pkg-web-silver',
+    category: 'website_ppdb',
+    category_name: 'Website & PPDB Online Sekolah',
+    name: 'Silver (PPDB Online)',
+    badge: 'Populer',
+    target_audience: 'SD / SMP / MTs Berkembang',
+    description: 'Website modern dilengkapi sistem pendaftaran siswa baru dan formulir upload berkas online.',
+    setup_fee: 5500000,
+    annual_fee: 1800000,
+    annual_fee_notes: 'Domain .sch.id / .com (gratis tahun 1) & High-Speed Hosting',
+    features: [
+      'Website Desain Modern & Responsif',
+      'Domain .sch.id / .com gratis thn 1',
+      'Formulir Pendaftaran & Upload Berkas PPDB',
+      'Modul Berita & Informasi Sekolah',
+      'Batas revisi desain 3 kali',
+      'Pelatihan admin sekolah',
+    ],
+    is_active: true,
+    is_featured: true,
+    sort_order: 2,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+  {
+    id: 'pkg-web-premium',
+    category: 'website_ppdb',
+    category_name: 'Website & PPDB Online Sekolah',
+    name: 'Premium (Official Portal)',
+    badge: 'Eksklusif',
+    target_audience: 'SMA / SMK / Sekolah Besar',
+    description: 'Portal sekolah berstandar tinggi dengan PPDB terpadu, multi-kategori informasi, dan E-Library.',
+    setup_fee: 9000000,
+    annual_fee: 3000000,
+    annual_fee_notes: 'Domain .sch.id & High-Speed Cloud Dedicated',
+    features: [
+      'Custom Desain Eksklusif Institusi',
+      'Domain .sch.id (High-Speed Cloud)',
+      'Sistem PPDB Lanjutan & Pengumuman Hasil',
+      'Berita Multi-Kategori & Modul E-Library',
+      'Batas revisi desain 5 kali',
+      'Dukungan teknis prioritas & backup otomatis',
+    ],
+    is_active: true,
+    is_featured: false,
+    sort_order: 3,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+
+  // 2. Teacher & Staff Attendance System (Mobile App + HRIS)
+  {
+    id: 'pkg-att-basic',
+    category: 'attendance_hris',
+    category_name: 'Teacher & Staff Attendance (Mobile App + HRIS)',
+    name: 'Basic (Mobile App Absensi)',
+    badge: 'Starter',
+    target_audience: 'Sekolah kecil / kursus',
+    description: 'Aplikasi mobile praktis untuk absensi harian guru dan staf dengan rekap otomatis.',
+    setup_fee: 6000000,
+    annual_fee: 2500000,
+    annual_fee_notes: 'Server database terisolasi & pemeliharaan berkala',
+    features: [
+      'Aplikasi Android Guru (Check-in / Check-out)',
+      'Rekap bulanan kehadiran (PDF / Excel)',
+      'Database mandiri terisolasi per sekolah',
+      'Hemat kuota dan ringan',
+    ],
+    is_active: true,
+    is_featured: false,
+    sort_order: 4,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+  {
+    id: 'pkg-att-silver',
+    category: 'attendance_hris',
+    category_name: 'Teacher & Staff Attendance (Mobile App + HRIS)',
+    name: 'Silver (Geofencing + Cuti)',
+    badge: 'Best Seller',
+    target_audience: 'Sekolah menengah / berkembang',
+    description: 'Sistem absensi dengan validasi radius lokasi GPS dan foto selfie serta pengajuan izin/cuti online.',
+    setup_fee: 10000000,
+    annual_fee: 4500000,
+    annual_fee_notes: 'Termasuk cloud server & storage foto selfie terkompresi',
+    features: [
+      'Aplikasi Absensi + Validasi Radius GPS (Geofencing)',
+      'Validasi Foto Selfie (Kompresi Otomatis Hemat Storage)',
+      'Modul Pengajuan & Approval Cuti / Izin Online',
+      'Web Panel Approval & Notifikasi Admin',
+      'Database mandiri terisolasi per sekolah',
+    ],
+    is_active: true,
+    is_featured: true,
+    sort_order: 5,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+  {
+    id: 'pkg-att-premium',
+    category: 'attendance_hris',
+    category_name: 'Teacher & Staff Attendance (Mobile App + HRIS)',
+    name: 'Premium (Enterprise HRIS + Dashboard)',
+    badge: 'Enterprise',
+    target_audience: 'SMA / SMK / Yayasan Pendidikan',
+    description: 'Aplikasi absensi custom branding logo institusi, manajemen shift lengkap, dan dashboard eksekutif.',
+    setup_fee: 15000000,
+    annual_fee: 7500000,
+    annual_fee_notes: 'High-performance cloud server dedicated & garansi uptime',
+    features: [
+      'Custom Branding Aplikasi (Logo & Warna Sekolah)',
+      'Validasi GPS & Foto Selfie Kompresi Otomatis',
+      'Manajemen Cuti, Shift Kerja, & Izin Lengkap',
+      'Dashboard Eksekutif untuk Yayasan / Kepala Sekolah',
+      'Database Terisolasi & Enkripsi Data Aman',
+      'Dukungan teknis prioritas & SLA',
+    ],
+    is_active: true,
+    is_featured: false,
+    sort_order: 6,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+
+  // 3. Paket Bundling Sekolah Digital
+  {
+    id: 'pkg-bnd-starter',
+    category: 'bundling',
+    category_name: 'Paket Bundling Sekolah Digital',
+    name: 'Sekolah Digital Starter',
+    badge: 'Hemat Rp 500rb',
+    target_audience: 'Sekolah Dasar / Kursus Mandiri',
+    description: 'Kombinasi Website Basic + Absensi Mobile Basic untuk solusi awal terpadu.',
+    setup_fee: 8500000,
+    annual_fee: 3700000,
+    annual_fee_notes: 'Perpanjangan gabungan domain, hosting, dan server absensi',
+    features: [
+      'Website Basic (Profile & Form WA)',
+      'Mobile App Absensi Basic (Check-in/out)',
+      'Rekap kehadiran bulanan Excel/PDF',
+      'Domain & Hosting tahun pertama',
+    ],
+    is_active: true,
+    is_featured: false,
+    sort_order: 7,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+  {
+    id: 'pkg-bnd-plus',
+    category: 'bundling',
+    category_name: 'Paket Bundling Sekolah Digital',
+    name: 'Sekolah Digital Plus',
+    badge: 'Paling Diminati',
+    target_audience: 'Sekolah Menengah / SMP / MTs',
+    description: 'Kombinasi Website Silver (PPDB Online) + Absensi Silver (Geofencing GPS & Cuti Online).',
+    setup_fee: 14500000,
+    annual_fee: 6300000,
+    annual_fee_notes: 'Perpanjangan hosting PPDB dan cloud storage absensi foto',
+    features: [
+      'Website Silver (Form PPDB & Berita)',
+      'Mobile App Absensi GPS + Selfie Kompresi',
+      'Modul Cuti & Izin Online Approval',
+      'Pelatihan gabungan operator & guru',
+      'Hemat investasi Rp 1.000.000',
+    ],
+    is_active: true,
+    is_featured: true,
+    sort_order: 8,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+  {
+    id: 'pkg-bnd-premium',
+    category: 'bundling',
+    category_name: 'Paket Bundling Sekolah Digital',
+    name: 'Sekolah Digital Premium',
+    badge: 'Solusi Lengkap',
+    target_audience: 'SMA / SMK / Yayasan Besar',
+    description: 'Solusi transformasi digital menyeluruh: Portal Website Premium + Enterprise HRIS Absensi Mobile.',
+    setup_fee: 22000000,
+    annual_fee: 10500000,
+    annual_fee_notes: 'High-performance dedicated server & storage terpadu',
+    features: [
+      'Website Portal Premium + PPDB + E-Library',
+      'Enterprise HRIS Absensi Custom Brand Sekolah',
+      'Dashboard Eksekutif Yayasan & Kepala Sekolah',
+      'Manajemen shift, cuti & lembur lengkap',
+      'Prioritas SLA & Pendampingan intensif',
+      'Hemat investasi Rp 2.000.000',
+    ],
+    is_active: true,
+    is_featured: false,
+    sort_order: 9,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+
+  // 4. Add-on Layanan
+  {
+    id: 'pkg-add-payroll',
+    category: 'addon',
+    category_name: 'Add-on & Fitur Tambahan',
+    name: 'Modul Payroll Terintegrasi',
+    badge: 'Add-on HR',
+    target_audience: 'Yayasan & Sekolah Swasta',
+    description: 'Perhitungan gaji guru/staf otomatis, potongan keterlambatan, dan slip gaji digital terintegrasi absensi.',
+    setup_fee: 4500000,
+    annual_fee: 1500000,
+    annual_fee_notes: 'Dukungan update regulasi & backup slip gaji',
+    features: [
+      'Perhitungan otomatis gaji pokok & tunjangan',
+      'Potongan keterlambatan otomatis dari data absensi',
+      'Generate & kirim slip gaji digital (PDF / WhatsApp)',
+      'Laporan pengeluaran gaji yayasan',
+    ],
+    is_active: true,
+    is_featured: false,
+    sort_order: 10,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+  {
+    id: 'pkg-add-campus',
+    category: 'addon',
+    category_name: 'Add-on & Fitur Tambahan',
+    name: 'Kampus / Unit Tambahan',
+    badge: 'Multi-Cabang',
+    target_audience: 'Yayasan dengan banyak lokasi/kampus',
+    description: 'Penambahan unit kampus atau cabang baru dalam satu yayasan (per kampus).',
+    setup_fee: 2500000,
+    annual_fee: 1000000,
+    annual_fee_notes: 'Per cabang / unit tambahan per tahun',
+    features: [
+      'Integrasi multi-cabang dalam 1 dashboard yayasan',
+      'Pengaturan geofencing terpisah per kampus',
+      'Rekap terpisah dan konsolidasi yayasan',
+    ],
+    is_active: true,
+    is_featured: false,
+    sort_order: 11,
+    created_at: '2026-11-03T00:00:00.000Z',
   },
 ];
 
@@ -1209,6 +1472,136 @@ export const DataStore = {
       ...c,
       lead: leadsMap.get(c.lead_id),
     }));
+  },
+
+  // ==========================================
+  // SERVICE PACKAGES (Katalog & Daftar Harga)
+  // ==========================================
+  async getServicePackages(): Promise<ServicePackage[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('service_packages')
+          .select('*')
+          .order('sort_order', { ascending: true })
+          .order('created_at', { ascending: true });
+        if (!error && data && data.length > 0) return data;
+      } catch (e) {
+        console.error('Supabase getServicePackages error', e);
+      }
+    }
+    // Fallback to localStorage or DEFAULT_SERVICE_PACKAGES
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('worrie_service_packages');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch {}
+      }
+    }
+    return DEFAULT_SERVICE_PACKAGES;
+  },
+
+  async createServicePackage(pkg: Omit<ServicePackage, 'id' | 'created_at' | 'updated_at'>): Promise<ServicePackage> {
+    const newPkg: ServicePackage = {
+      ...pkg,
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `pkg-${Date.now()}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('service_packages')
+          .insert([newPkg])
+          .select()
+          .single();
+        if (!error && data) return data;
+      } catch (e) {
+        console.error('Supabase createServicePackage error', e);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      const current = await this.getServicePackages();
+      const updated = [...current, newPkg];
+      localStorage.setItem('worrie_service_packages', JSON.stringify(updated));
+    }
+    return newPkg;
+  },
+
+  async updateServicePackage(id: string, updates: Partial<ServicePackage>): Promise<ServicePackage | null> {
+    const timestamp = new Date().toISOString();
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('service_packages')
+          .update({ ...updates, updated_at: timestamp })
+          .eq('id', id)
+          .select()
+          .single();
+        if (!error && data) return data;
+      } catch (e) {
+        console.error('Supabase updateServicePackage error', e);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      const current = await this.getServicePackages();
+      const index = current.findIndex((p) => p.id === id);
+      if (index !== -1) {
+        const updated = { ...current[index], ...updates, updated_at: timestamp };
+        current[index] = updated;
+        localStorage.setItem('worrie_service_packages', JSON.stringify(current));
+        return updated;
+      }
+    }
+    return null;
+  },
+
+  async deleteServicePackage(id: string): Promise<boolean> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase
+          .from('service_packages')
+          .delete()
+          .eq('id', id);
+        if (!error) return true;
+      } catch (e) {
+        console.error('Supabase deleteServicePackage error', e);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      const current = await this.getServicePackages();
+      const filtered = current.filter((p) => p.id !== id);
+      localStorage.setItem('worrie_service_packages', JSON.stringify(filtered));
+      return true;
+    }
+    return false;
+  },
+
+  async resetServicePackagesToDefault(): Promise<ServicePackage[]> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('service_packages').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        const toInsert = DEFAULT_SERVICE_PACKAGES.map((p) => ({
+          ...p,
+          id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined,
+        }));
+        const { data, error } = await supabase.from('service_packages').insert(toInsert).select();
+        if (!error && data) return data;
+      } catch (e) {
+        console.error('Supabase resetServicePackagesToDefault error', e);
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('worrie_service_packages', JSON.stringify(DEFAULT_SERVICE_PACKAGES));
+    }
+    return DEFAULT_SERVICE_PACKAGES;
   },
 };
 
