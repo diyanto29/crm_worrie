@@ -6,6 +6,15 @@ Dokumentasi ini mencatat riwayat perubahan dan penambahan skema database (*datab
 
 ## Riwayat Migrasi (Migration History)
 
+### 📌 [2026-11-08] - Injeksi Paket Rekomendasi Lanjutan After School Program Worrie.id
+* **File Migrasi:** [`supabase/migrations/20261108154500_seed_after_school_recommendations.sql`](supabase/migrations/20261108154500_seed_after_school_recommendations.sql)
+* **Tanggal:** 08 November 2026
+* **Status:** Ready to Apply
+* **Tipe Perubahan:** Penambahan paket "After School Full Year Career Pathway (4 Terms / 1 Tahun)", "B2B Kemitraan Sekolah (Ekskul Resmi Institusi)", "Holiday Remote Camp (Bootcamp Liburan 5 Hari)", dan Add-on "Domain & Website Portofolio Siswa" pada tabel `public.service_packages`.
+* **Tujuan:** Menyediakan ragam penawaran lengkap untuk program After School Worrie.id, mencakup opsi tahunan berdiskon, skema kemitraan tanpa biaya awal bagi sekolah dengan revenue sharing, paket bootcamp liburan, serta add-on portofolio digital pribadi siswa.
+
+---
+
 ### 📌 [2026-11-08] - Injeksi Paket After School Program (Worrie.id)
 * **File Migrasi:** [`supabase/migrations/20261108152000_seed_after_school_packages.sql`](supabase/migrations/20261108152000_seed_after_school_packages.sql)
 * **Tanggal:** 08 November 2026

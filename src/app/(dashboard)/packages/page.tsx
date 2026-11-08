@@ -29,7 +29,11 @@ import {
   DollarSign,
   AlertCircle,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Users,
+  Calculator,
+  Lightbulb,
+  TrendingUp,
 } from 'lucide-react';
 import { DataStore, DEFAULT_SERVICE_PACKAGES } from '@/lib/dataStore';
 import { ServicePackage, PackageCategory } from '@/types/database';
@@ -46,6 +50,10 @@ export default function ServicePackagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // After School Simulator State
+  const [simStudents, setSimStudents] = useState<number>(5);
+  const [showSimCopied, setShowSimCopied] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -237,6 +245,38 @@ _Proposal Kemitraan Transformasi Digital Sekolah - Worrie.id & Mudahkan.online_`
     navigator.clipboard.writeText(text);
     setCopiedId(pkg.id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleCopyPitchText = () => {
+    const groups = Math.max(1, Math.ceil(simStudents / 5));
+    const totalTerm = simStudents * 1320000;
+    const text = `Halo Bapak/Ibu Pimpinan Sekolah / Komite,
+
+Perkenalkan kami dari *Worrie.id (Working Remotely Indonesia)*. Kami ingin menawarkan program ekstrakurikuler unggulan untuk para siswa:
+
+🚀 *AFTER SCHOOL: REMOTE WORK CAREER ACCELERATOR*
+Program ekstrakurikuler intensif yang mempersiapkan generasi muda menguasai skill digital & berkarir secara global remote work sejak bangku sekolah.
+
+✨ *Mengapa Program Ini Sangat Diminati Siswa & Orang Tua?*
+1. *Rasio Emas 1:5* — 1 Mentor praktisi industri hanya mendampingi maksimal 5 siswa untuk bimbingan personal.
+2. *100% Praktik Langsung* — Bukan les teori membosankan. Setiap kali pertemuan, siswa pulang membawa 1 project & portofolio karya nyata!
+3. *Skill Siap Kerja Masa Depan* — Pemanfaatan AI Tools, Desain Portofolio Digital, dan Freelancing Remote internasional.
+4. *Pameran Karya (Showcase)* — Presentasi pameran hasil karya siswa di akhir term di hadapan pihak sekolah & orang tua.
+
+💰 *Format Biaya Terjangkau:*
+• Biaya Sesi: *Rp 110.000 / anak / pertemuan* (Minimal 5 anak / kelas = Rp 550.000 / sesi)
+• Paket 1 Term (3 Bulan / 12x Pertemuan): *Rp 1.320.000 / anak*
+• Simulasi untuk ${simStudents} Siswa: ${groups} Kelompok Belajar (Total Investasi Term: Rp ${totalTerm.toLocaleString('id-ID')})
+
+Tersedia juga opsi *Kemitraan Resmi B2B Sekolah* (tanpa biaya awal, pemanfaatan lab komputer sekolah & sistem bagi hasil 10-15% ke kas sekolah).
+
+Apakah kami diperkenankan menjadwalkan presentasi singkat (15 menit) atau mengirimkan proposal resminya? Terima kasih banyak.
+
+_Salam Hangat, Tim Worrie.id (Working Remotely Indonesia)_`;
+
+    navigator.clipboard.writeText(text);
+    setShowSimCopied(true);
+    setTimeout(() => setShowSimCopied(false), 2500);
   };
 
   // Filtered list
@@ -456,6 +496,118 @@ _Proposal Kemitraan Transformasi Digital Sekolah - Worrie.id & Mudahkan.online_`
           </div>
         </div>
       </div>
+
+      {/* Rekomendasi Khusus & Simulator After School (Tampil saat tab 'all' atau 'after_school') */}
+      {(activeTab === 'all' || activeTab === 'after_school') && (
+        <div className="bg-gradient-to-br from-amber-50/70 via-white to-blue-50/50 rounded-2xl border border-amber-200/80 p-5 sm:p-6 shadow-xs animate-in fade-in duration-200">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+            {/* Sisi Kiri: Rekomendasi Format Penulisan Harga & Value Proposition */}
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-amber-500 text-white shadow-xs">
+                  <Lightbulb className="w-4 h-4" />
+                </span>
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
+                  Rekomendasi Penulisan Harga & Cara Pitching After School Worrie.id
+                </h3>
+              </div>
+
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Berdasarkan strategi konversi penawaran: Orang tua dan sekolah lebih mudah menyetujui jika nilai pertemuannya terasa terjangkau setara uang jajan harian, namun hasilnya bergaransi nyata. Gunakan 3 pilar penawaran berikut:
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                <div className="p-3 rounded-xl bg-white border border-amber-200/70 shadow-2xs">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Format Harga Sesi</span>
+                  <p className="text-sm font-black text-slate-900 mt-0.5">Rp 110.000 <span className="text-xs font-normal text-slate-500">/ anak / sesi</span></p>
+                  <p className="text-[11px] text-slate-500 mt-1">Min. 5 anak (1 kelas = Rp 550.000). Rasio 1 guru fokus 5 murid.</p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-white border border-blue-200/70 shadow-2xs">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">Format Pembayaran Term</span>
+                  <p className="text-sm font-black text-[#004a87] mt-0.5">Rp 1.320.000 <span className="text-xs font-normal text-slate-500">/ 3 bulan</span></p>
+                  <p className="text-[11px] text-slate-500 mt-1">12x pertemuan intensif. Garansi tuntas 12 project karya portofolio.</p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-white border border-emerald-200/70 shadow-2xs">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Kunci Penawaran (Hook)</span>
+                  <p className="text-xs font-bold text-slate-800 mt-0.5">&ldquo;Tiap Sesi Pulang Bawa Karya&rdquo;</p>
+                  <p className="text-[11px] text-slate-500 mt-1">Bukan les teori. Setiap sesi siswa membuat karya nyata untuk portofolio global.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Sisi Kanan: Kalkulator Interaktif Simulasi Jumlah Siswa */}
+            <div className="w-full lg:w-96 bg-white rounded-xl border border-slate-200 p-4 shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Calculator className="w-3.5 h-3.5 text-[#004a87]" />
+                  Simulasi Kelas & Omset Term
+                </span>
+                <span className="text-[11px] font-extrabold text-[#004a87] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                  {simStudents} Siswa ({Math.max(1, Math.ceil(simStudents / 5))} Guru)
+                </span>
+              </div>
+
+              {/* Slider / Button Quick Choice */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Pilih Jumlah Siswa:</span>
+                  <span className="font-bold text-slate-700">{simStudents} Anak</span>
+                </div>
+                <input
+                  type="range"
+                  min="5"
+                  max="40"
+                  step="5"
+                  value={simStudents}
+                  onChange={(e) => setSimStudents(Number(e.target.value))}
+                  className="w-full accent-[#004a87] cursor-pointer"
+                />
+                <div className="flex items-center justify-between text-[10px] text-slate-400">
+                  <span>5 anak (1 klp)</span>
+                  <span>15 anak (3 klp)</span>
+                  <span>30 anak (6 klp)</span>
+                  <span>40 anak (8 klp)</span>
+                </div>
+              </div>
+
+              {/* Calculation Summary */}
+              <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 space-y-1 text-xs">
+                <div className="flex justify-between text-slate-600">
+                  <span>Omset per Pertemuan:</span>
+                  <span className="font-bold text-slate-900">Rp {(simStudents * 110000).toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between text-slate-600">
+                  <span>Omset 1 Term (12 Sesi):</span>
+                  <span className="font-extrabold text-[#004a87]">Rp {(simStudents * 1320000).toLocaleString('id-ID')}</span>
+                </div>
+                <div className="flex justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-200/80">
+                  <span>Rasio Pengajar:</span>
+                  <span className="font-medium text-slate-700">{Math.max(1, Math.ceil(simStudents / 5))} Mentor Praktisi</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleCopyPitchText}
+                className="w-full py-2 px-3 rounded-lg bg-[#004a87] hover:bg-[#003866] text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                {showSimCopied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-300" />
+                    <span>Draft WhatsApp Tersalin!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Salin Draft WhatsApp ({simStudents} Siswa)</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Area */}
       {loading ? (
