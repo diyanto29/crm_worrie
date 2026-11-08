@@ -142,6 +142,7 @@ export default function ServicePackagesPage() {
     const cleanedFeatures = formFeatures.map((f) => f.trim()).filter(Boolean);
 
     const categoryNames: Record<PackageCategory, string> = {
+      after_school: 'After School Program (Worrie.id)',
       website_ppdb: 'Website & PPDB Online Sekolah',
       attendance_hris: 'Teacher & Staff Attendance (Mobile App + HRIS)',
       bundling: 'Paket Bundling Sekolah Digital',
@@ -257,6 +258,7 @@ _Proposal Kemitraan Transformasi Digital Sekolah - Worrie.id & Mudahkan.online_`
   const countByCategory = useMemo(() => {
     return {
       all: packages.length,
+      after_school: packages.filter((p) => p.category === 'after_school').length,
       website_ppdb: packages.filter((p) => p.category === 'website_ppdb').length,
       attendance_hris: packages.filter((p) => p.category === 'attendance_hris').length,
       bundling: packages.filter((p) => p.category === 'bundling').length,
@@ -356,6 +358,18 @@ _Proposal Kemitraan Transformasi Digital Sekolah - Worrie.id & Mudahkan.online_`
             }`}
           >
             Semua ({countByCategory.all})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('after_school')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'after_school'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'text-slate-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/60'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            After School Worrie ({countByCategory.after_school})
           </button>
 
           <button
@@ -484,6 +498,7 @@ _Proposal Kemitraan Transformasi Digital Sekolah - Worrie.id & Mudahkan.online_`
                 <div className="p-6 pb-4">
                   <div className="flex items-center justify-between gap-2 mb-3">
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                      {pkg.category === 'after_school' && <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
                       {pkg.category === 'website_ppdb' && <Globe className="w-3.5 h-3.5 text-blue-600" />}
                       {pkg.category === 'attendance_hris' && <Smartphone className="w-3.5 h-3.5 text-emerald-600" />}
                       {pkg.category === 'bundling' && <Layers className="w-3.5 h-3.5 text-amber-600" />}
@@ -776,6 +791,7 @@ _Proposal Kemitraan Transformasi Digital Sekolah - Worrie.id & Mudahkan.online_`
                     onChange={(e) => setFormCategory(e.target.value as PackageCategory)}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:border-[#004a87]"
                   >
+                    <option value="after_school">After School Program (Worrie.id)</option>
                     <option value="website_ppdb">Website & PPDB Online Sekolah</option>
                     <option value="attendance_hris">Teacher & Staff Attendance (Mobile App + HRIS)</option>
                     <option value="bundling">Paket Bundling Sekolah Digital</option>
@@ -972,3 +988,4 @@ _Proposal Kemitraan Transformasi Digital Sekolah - Worrie.id & Mudahkan.online_`
     </div>
   );
 }
+

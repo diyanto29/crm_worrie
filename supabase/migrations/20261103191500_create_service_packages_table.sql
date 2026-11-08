@@ -233,3 +233,4 @@ select * from (
     )
 ) as t(category, category_name, name, badge, target_audience, description, setup_fee, annual_fee, annual_fee_notes, features, is_featured, sort_order)
 where not exists (select 1 from public.service_packages limit 1);
+

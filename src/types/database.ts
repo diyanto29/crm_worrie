@@ -195,8 +195,8 @@ export interface AppSettings {
   updated_at: string;
 }
 
-// 7. Katalog Paket Layanan (Website, PPDB, Absensi Guru, Bundling, Addon)
-export type PackageCategory = 'website_ppdb' | 'attendance_hris' | 'bundling' | 'addon' | 'custom';
+// 7. Katalog Paket Layanan (Website, PPDB, Absensi Guru, Bundling, After School, Addon)
+export type PackageCategory = 'after_school' | 'website_ppdb' | 'attendance_hris' | 'bundling' | 'addon' | 'custom';
 
 export interface ServicePackage {
   id: string;

@@ -48,6 +48,55 @@ const DEFAULT_TEMPLATES: MessageTemplate[] = [
 ];
 
 export const DEFAULT_SERVICE_PACKAGES: ServicePackage[] = [
+  // 0. Program Unggulan Internal Worrie.id (After School Digital & Remote Work)
+  {
+    id: 'pkg-afterschool-term',
+    category: 'after_school',
+    category_name: 'After School Program (Worrie.id)',
+    name: 'After School Remote Work Accelerator (1 Term / 3 Bulan)',
+    badge: 'Paling Populer',
+    target_audience: 'Siswa SMP / SMA / SMK (Kelompok Min. 5 Anak)',
+    description: 'Program ekstrakurikuler intensif persiapan karir global remote work. 1 kelas dibimbing 1 mentor industri untuk 5 siswa. Setiap sesi siswa langsung praktik dan pulang membawa project karya nyata.',
+    setup_fee: 1320000,
+    annual_fee: 0,
+    annual_fee_notes: 'Biaya per anak untuk 1 Term (12 sesi x Rp 110.000, bayar per 3 bulan)',
+    features: [
+      'Rasio Emas 1:5 (1 Mentor Industri : Maksimal 5 Siswa)',
+      '12x Pertemuan Intensif (3 Bulan / 1 Term)',
+      '12 Karya Portfolio Nyata (1 Project per Pertemuan)',
+      'Kurikulum Siap Karir: AI Tools, Global Portfolio, Remote Freelancing',
+      'Laporan Hasil Belajar Bulanan & Sertifikat Resmi Worrie.id',
+      'Showcase Pameran Karya Akhir Term di Hadapan Orang Tua & Sekolah',
+    ],
+    is_active: true,
+    is_featured: true,
+    sort_order: 1,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+  {
+    id: 'pkg-afterschool-session',
+    category: 'after_school',
+    category_name: 'After School Program (Worrie.id)',
+    name: 'After School Cohort (Per Pertemuan / Kelompok 5 Siswa)',
+    badge: 'Min. 5 Anak',
+    target_audience: '1 Kelompok Belajar (5 Siswa + 1 Mentor)',
+    description: 'Biaya operasional kelas per pertemuan untuk 1 kelompok minimal 5 siswa (Rp 110.000/anak/sesi). Siswa menyelesaikan 1 mini-project nyata dalam sesi ini.',
+    setup_fee: 550000,
+    annual_fee: 0,
+    annual_fee_notes: 'Rp 110.000 per anak per pertemuan (Minimal 5 anak untuk menjalankan kelas)',
+    features: [
+      '1x Pertemuan Hands-on Praktik Langsung (90-120 menit)',
+      'Rasio 1 Mentor Praktisi : 5 Siswa',
+      'Pulang Membawa 1 Project / Karya Nyata',
+      'Software & Digital Asset Practice Kit',
+      'Pendampingan Praktik Step-by-Step Tanpa Teori Membosankan',
+    ],
+    is_active: true,
+    is_featured: false,
+    sort_order: 2,
+    created_at: '2026-11-03T00:00:00.000Z',
+  },
+
   // 1. Website & PPDB Online Sekolah
   {
     id: 'pkg-web-basic',

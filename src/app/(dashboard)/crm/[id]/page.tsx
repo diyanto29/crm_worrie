@@ -837,22 +837,29 @@ function LeadDetailContent() {
           {/* GROUP D: Stage Selector */}
           <select
             value={status}
-            onChange={(e) => {
+            onChange={async (e) => {
               const newSt = e.target.value as LeadStatus;
               if (newSt === 'Ditolak') {
                 setIsLostReasonModalOpen(true);
                 return;
               }
+              const oldSt = status;
               setStatus(newSt);
-              DataStore.updateLead(lead.id, { status: newSt });
-              DataStore.createLeadActivity({
-                lead_id: lead.id,
-                activity_type: 'stage_changed',
-                title: `Tahap Dialihkan: ${status} → ${newSt}`,
-                description: `Perubahan tahap pipeline diperbarui.`,
-                actor_name: actorName,
-              });
-              reloadLeadData();
+              try {
+                await DataStore.updateLead(lead.id, { status: newSt });
+                await DataStore.createLeadActivity({
+                  lead_id: lead.id,
+                  activity_type: 'stage_changed',
+                  title: `Tahap Dialihkan: ${oldSt} → ${newSt}`,
+                  description: `Perubahan tahap pipeline diperbarui.`,
+                  actor_name: actorName,
+                });
+                await reloadLeadData();
+              } catch (err) {
+                console.error('Failed to change stage:', err);
+                setStatus(oldSt);
+                alert('Gagal memperbarui status prospek.');
+              }
             }}
             className="shrink-0 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#004a87]/20 focus:border-[#004a87] cursor-pointer transition-colors"
           >
