@@ -40,3 +40,4 @@ select * from (
 where not exists (
   select 1 from public.service_packages where name = 'After School Remote Work Accelerator (1 Term / 3 Bulan)'
 );
+

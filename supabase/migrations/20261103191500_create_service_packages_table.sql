@@ -1,13 +1,13 @@
 -- =========================================================================
 -- MIGRATION: 20261103191500_create_service_packages_table.sql
--- Description: Tabel Katalog & Daftar Harga Paket Transformasi Digital Sekolah
--- (Website, PPDB Online, Absensi Mobile Guru + HRIS, Bundling & Add-on)
+-- Description: Tabel Katalog & Daftar Harga Paket Transformasi Digital & After School Worrie.id
+-- (After School Worrie.id, Website, PPDB Online, Absensi Mobile Guru + HRIS, Bundling & Add-on)
 -- =========================================================================
 
 create table if not exists public.service_packages (
   id uuid primary key default gen_random_uuid(),
-  category text not null, -- 'website_ppdb' | 'attendance_hris' | 'bundling' | 'addon'
-  category_name text not null, -- 'Website & PPDB Online', 'Absensi & HRIS Guru', dll.
+  category text not null, -- 'after_school' | 'website_ppdb' | 'attendance_hris' | 'bundling' | 'addon'
+  category_name text not null, -- 'After School Program (Worrie.id)', 'Website & PPDB Online', dll.
   name text not null,
   badge text, -- 'Starter', 'Populer', 'Best Value', 'Enterprise', dll.
   target_audience text, -- 'TK / PAUD / Kursus Kecil', 'SD / SMP', 'SMA / SMK', dll.
@@ -64,12 +64,42 @@ create trigger set_service_packages_updated_at
   before update on public.service_packages
   for each row execute function public.handle_service_packages_updated_at();
 
--- Seed Data Awal Resmi Sesuai Proposal (Mudahkan.online × Mas Diyanto & Working Remotely Indonesia)
+-- Seed Data Awal Resmi (Worrie.id Internal + Mudahkan.online Proposal)
 insert into public.service_packages (
   category, category_name, name, badge, target_audience, description, setup_fee, annual_fee, annual_fee_notes, features, is_featured, sort_order
 )
 select * from (
   values 
+    -- 0. Program Internal Worrie.id: After School Remote Work Accelerator
+    (
+      'after_school',
+      'After School Program (Worrie.id)',
+      'After School Remote Work Accelerator (1 Term / 3 Bulan)',
+      'Paling Populer',
+      'Siswa SMP / SMA / SMK (Kelompok Min. 5 Anak)',
+      'Program ekstrakurikuler intensif persiapan karir global remote work. 1 kelas dibimbing 1 mentor industri untuk 5 siswa. Setiap sesi siswa langsung praktik dan pulang membawa project karya nyata.',
+      1320000::numeric,
+      0::numeric,
+      'Biaya per anak untuk 1 Term (12 sesi x Rp 110.000, bayar per 3 bulan)',
+      '["Rasio Emas 1:5 (1 Mentor Industri : Maksimal 5 Siswa)", "12x Pertemuan Intensif (3 Bulan / 1 Term)", "12 Karya Portfolio Nyata (1 Project per Pertemuan)", "Kurikulum Siap Karir: AI Tools, Global Portfolio, Remote Freelancing", "Laporan Hasil Belajar Bulanan & Sertifikat Resmi Worrie.id", "Showcase Pameran Karya Akhir Term di Hadapan Orang Tua & Sekolah"]'::jsonb,
+      true,
+      1
+    ),
+    (
+      'after_school',
+      'After School Program (Worrie.id)',
+      'After School Cohort (Per Pertemuan / Kelompok 5 Siswa)',
+      'Min. 5 Anak',
+      '1 Kelompok Belajar (5 Siswa + 1 Mentor)',
+      'Biaya operasional kelas per pertemuan untuk 1 kelompok minimal 5 siswa (Rp 110.000/anak/sesi). Siswa menyelesaikan 1 mini-project nyata dalam sesi ini.',
+      550000::numeric,
+      0::numeric,
+      'Rp 110.000 per anak per pertemuan (Minimal 5 anak untuk menjalankan kelas)',
+      '["1x Pertemuan Hands-on Praktik Langsung (90-120 menit)", "Rasio 1 Mentor Praktisi : 5 Siswa", "Pulang Membawa 1 Project / Karya Nyata", "Software & Digital Asset Practice Kit", "Pendampingan Praktik Step-by-Step Tanpa Teori Membosankan"]'::jsonb,
+      false,
+      2
+    ),
+
     -- 1. Website & PPDB Online
     (
       'website_ppdb',
@@ -83,7 +113,7 @@ select * from (
       'Domain .sch.id / .com (gratis tahun 1) & Cloud Hosting',
       '["Website Profil & Responsif (Mobile & Desktop)", "Domain .sch.id / .com gratis thn 1", "Sistem PPDB via Form WhatsApp", "Batas revisi desain 2 kali", "Panduan operasional website"]'::jsonb,
       false,
-      1
+      3
     ),
     (
       'website_ppdb',
@@ -97,7 +127,7 @@ select * from (
       'Domain .sch.id / .com (gratis tahun 1) & High-Speed Hosting',
       '["Website Desain Modern & Responsif", "Domain .sch.id / .com gratis thn 1", "Formulir Pendaftaran & Upload Berkas PPDB", "Modul Berita & Informasi Sekolah", "Batas revisi desain 3 kali", "Pelatihan admin sekolah"]'::jsonb,
       true,
-      2
+      4
     ),
     (
       'website_ppdb',
@@ -111,7 +141,7 @@ select * from (
       'Domain .sch.id & High-Speed Cloud Dedicated',
       '["Custom Desain Eksklusif Institusi", "Domain .sch.id (High-Speed Cloud)", "Sistem PPDB Lanjutan & Pengumuman Hasil", "Berita Multi-Kategori & Modul E-Library", "Batas revisi desain 5 kali", "Dukungan teknis prioritas & backup otomatis"]'::jsonb,
       false,
-      3
+      5
     ),
 
     -- 2. Teacher & Staff Attendance System (Mobile App + HRIS)
@@ -127,7 +157,7 @@ select * from (
       'Server database terisolasi & pemeliharaan berkala',
       '["Aplikasi Android Guru (Check-in / Check-out)", "Rekap bulanan kehadiran (PDF / Excel)", "Database mandiri terisolasi per sekolah", "Hemat kuota dan ringan"]'::jsonb,
       false,
-      4
+      6
     ),
     (
       'attendance_hris',
@@ -141,7 +171,7 @@ select * from (
       'Termasuk cloud server & storage foto selfie terkompresi',
       '["Aplikasi Absensi + Validasi Radius GPS (Geofencing)", "Validasi Foto Selfie (Kompresi Otomatis Hemat Storage)", "Modul Pengajuan & Approval Cuti / Izin Online", "Web Panel Approval & Notifikasi Admin", "Database mandiri terisolasi per sekolah"]'::jsonb,
       true,
-      5
+      7
     ),
     (
       'attendance_hris',
@@ -155,7 +185,7 @@ select * from (
       'High-performance cloud server dedicated & garansi uptime',
       '["Custom Branding Aplikasi (Logo & Warna Sekolah)", "Validasi GPS & Foto Selfie Kompresi Otomatis", "Manajemen Cuti, Shift Kerja, & Izin Lengkap", "Dashboard Eksekutif untuk Yayasan / Kepala Sekolah", "Database Terisolasi & Enkripsi Data Aman", "Dukungan teknis prioritas & SLA"]'::jsonb,
       false,
-      6
+      8
     ),
 
     -- 3. Paket Bundling Sekolah Digital
@@ -171,7 +201,7 @@ select * from (
       'Perpanjangan gabungan domain, hosting, dan server absensi',
       '["Website Basic (Profile & Form WA)", "Mobile App Absensi Basic (Check-in/out)", "Rekap kehadiran bulanan Excel/PDF", "Domain & Hosting tahun pertama"]'::jsonb,
       false,
-      7
+      9
     ),
     (
       'bundling',
@@ -185,7 +215,7 @@ select * from (
       'Perpanjangan hosting PPDB dan cloud storage absensi foto',
       '["Website Silver (Form PPDB & Berita)", "Mobile App Absensi GPS + Selfie Kompresi", "Modul Cuti & Izin Online Approval", "Pelatihan gabungan operator & guru", "Hemat investasi Rp 1.000.000"]'::jsonb,
       true,
-      8
+      10
     ),
     (
       'bundling',
@@ -199,7 +229,7 @@ select * from (
       'High-performance dedicated server & storage terpadu',
       '["Website Portal Premium + PPDB + E-Library", "Enterprise HRIS Absensi Custom Brand Sekolah", "Dashboard Eksekutif Yayasan & Kepala Sekolah", "Manajemen shift, cuti & lembur lengkap", "Prioritas SLA & Pendampingan intensif", "Hemat investasi Rp 2.000.000"]'::jsonb,
       false,
-      9
+      11
     ),
 
     -- 4. Add-on Layanan
@@ -215,7 +245,7 @@ select * from (
       'Dukungan update regulasi & backup slip gaji',
       '["Perhitungan otomatis gaji pokok & tunjangan", "Potongan keterlambatan otomatis dari data absensi", "Generate & kirim slip gaji digital (PDF / WhatsApp)", "Laporan pengeluaran gaji yayasan"]'::jsonb,
       false,
-      10
+      12
     ),
     (
       'addon',
@@ -229,8 +259,7 @@ select * from (
       'Per cabang / unit tambahan per tahun',
       '["Integrasi multi-cabang dalam 1 dashboard yayasan", "Pengaturan geofencing terpisah per kampus", "Rekap terpisah dan konsolidasi yayasan"]'::jsonb,
       false,
-      11
+      13
     )
 ) as t(category, category_name, name, badge, target_audience, description, setup_fee, annual_fee, annual_fee_notes, features, is_featured, sort_order)
 where not exists (select 1 from public.service_packages limit 1);
-
