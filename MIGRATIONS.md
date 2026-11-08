@@ -6,6 +6,15 @@ Dokumentasi ini mencatat riwayat perubahan dan penambahan skema database (*datab
 
 ## Riwayat Migrasi (Migration History)
 
+### 📌 [2026-11-08] - Injeksi Paket After School Program (Worrie.id)
+* **File Migrasi:** [`supabase/migrations/20261108152000_seed_after_school_packages.sql`](supabase/migrations/20261108152000_seed_after_school_packages.sql)
+* **Tanggal:** 08 November 2026
+* **Status:** Ready to Apply
+* **Tipe Perubahan:** Penambahan seed data paket program ekstrakurikuler "After School Remote Work Accelerator (1 Term / 3 Bulan)" dan "After School Cohort (Per Pertemuan)" pada tabel `public.service_packages`.
+* **Tujuan:** Menyediakan paket harga program internal Worrie.id untuk sekolah dengan rasio 1:5 dan model pembayaran per term (Rp 1.320.000 / 3 bulan) serta per sesi (Rp 550.000 / kelompok).
+
+---
+
 ### 📌 [2026-11-03] - Pembuatan Tabel Katalog & Daftar Harga Paket Layanan Sekolah
 * **File Migrasi:** [`supabase/migrations/20261103191500_create_service_packages_table.sql`](supabase/migrations/20261103191500_create_service_packages_table.sql)
 * **Tanggal:** 03 November 2026
