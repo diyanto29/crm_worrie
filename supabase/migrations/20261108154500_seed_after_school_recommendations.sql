@@ -97,3 +97,4 @@ select * from (
 where not exists (
   select 1 from public.service_packages where name = 'After School Full Year Career Pathway (4 Terms / 1 Tahun)'
 );
+

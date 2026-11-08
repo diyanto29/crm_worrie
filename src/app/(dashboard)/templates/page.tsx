@@ -43,9 +43,9 @@ export default function TemplatesPage() {
 
   // AI Generator Modal State
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [aiCategory, setAiCategory] = useState<AIGeneratorOptions['category']>('new_web');
-  const [aiIndustry, setAiIndustry] = useState<AIGeneratorOptions['industry']>('general');
-  const [aiTone, setAiTone] = useState<AIGeneratorOptions['tone']>('friendly');
+  const [aiCategory, setAiCategory] = useState<AIGeneratorOptions['category']>('after_school');
+  const [aiIndustry, setAiIndustry] = useState<AIGeneratorOptions['industry']>('school');
+  const [aiTone, setAiTone] = useState<AIGeneratorOptions['tone']>('professional');
   const [aiGeneratedResult, setAiGeneratedResult] = useState<{ title: string; body: string } | null>(null);
   const [isAiGenerating, setIsAiGenerating] = useState(false);
 
@@ -177,11 +177,11 @@ export default function TemplatesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <MessageSquareQuote className="w-7 h-7 text-emerald-600" />
-            Template Pesan WhatsApp & AI Copywriting
+            <MessageSquareQuote className="w-7 h-7 text-[#004a87]" />
+            Template Pesan WhatsApp & Pitching Sekolah
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Kelola template salam penawaran, gunakan rekomendasi siap pakai, atau generate kata-kata promosi dengan AI.
+          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
+            Koleksi draf pesan WhatsApp resmi untuk audiensi kemitraan sekolah, program After School Remote Work Accelerator, serta penawaran sistem website & absensi guru.
           </p>
         </div>
 
@@ -191,7 +191,7 @@ export default function TemplatesPage() {
               setIsAiModalOpen(true);
               if (!aiGeneratedResult) handleGenerateAI();
             }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/10 cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#004a87] to-blue-700 hover:from-[#003866] hover:to-blue-800 text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-blue-900/10 cursor-pointer"
           >
             <Sparkles className="w-4 h-4 text-amber-300" />
             ✨ AI Magic Generator
@@ -213,7 +213,7 @@ export default function TemplatesPage() {
           onClick={() => setActiveTab('my_templates')}
           className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === 'my_templates'
-              ? 'border-emerald-600 text-emerald-700'
+              ? 'border-[#004a87] text-[#004a87]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -225,13 +225,13 @@ export default function TemplatesPage() {
           onClick={() => setActiveTab('recommendations')}
           className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === 'recommendations'
-              ? 'border-emerald-600 text-emerald-700'
+              ? 'border-[#004a87] text-[#004a87]'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
-          <BookOpen className="w-4 h-4 text-emerald-600" />
-          Rekomendasi Siap Pakai ({RECOMMENDED_TEMPLATES.length})
-          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+          <BookOpen className="w-4 h-4 text-amber-500" />
+          Rekomendasi Program Sekolah ({RECOMMENDED_TEMPLATES.length})
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
             Terbukti Closing
           </span>
         </button>
@@ -284,18 +284,16 @@ export default function TemplatesPage() {
                   {/* Variable Helper Pills */}
                   <div className="flex flex-wrap gap-2 mb-2">
                     {[
-                      { tag: '{business_name}', label: '+ Nama Bisnis' },
-                      { tag: '{rating}', label: '+ Rating' },
+                      { tag: '{business_name}', label: '+ Nama Sekolah/Instansi' },
+                      { tag: '{rating}', label: '+ Rating Google Maps' },
                       { tag: '{reviews_count}', label: '+ Jumlah Ulasan' },
-                      { tag: '{address}', label: '+ Alamat' },
-                      { tag: '{app_url}', label: '+ Link Aplikasi' },
-                      { tag: '{contact_phone}', label: '+ No WA Bantuan/CS' },
+                      { tag: '{address}', label: '+ Alamat Sekolah' },
                     ].map((v) => (
                       <button
                         key={v.tag}
                         type="button"
                         onClick={() => handleInsertVariable(v.tag)}
-                        className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-mono font-medium transition-colors cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#004a87] border border-blue-200 text-[11px] font-mono font-medium transition-colors cursor-pointer"
                       >
                         {v.label}
                       </button>
@@ -433,19 +431,19 @@ export default function TemplatesPage() {
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 text-xs">
             {[
               { id: 'all', label: 'Semua Rekomendasi' },
-              { id: 'app_offer', label: '📱 Penawaran Aplikasi Kita' },
-              { id: 'noweb', label: '🔥 Bisnis Tanpa Web' },
-              { id: 'followup', label: '🤝 Follow Up' },
-              { id: 'promo', label: '⏳ Promo & Urgensi' },
-              { id: 'redesign', label: '🚀 Redesain Web' },
-              { id: 'niche', label: '🎯 Khusus Industri (F&B / Klinik)' },
+              { id: 'after_school', label: '🚀 After School Worrie.id' },
+              { id: 'school_partnership', label: '🏫 Kemitraan Kepala Sekolah & Komite' },
+              { id: 'website_ppdb', label: '🌐 Website & PPDB Online' },
+              { id: 'attendance_hris', label: '📱 Absensi Mobile Guru & HRIS' },
+              { id: 'bundling', label: '📦 Paket Bundling Digital' },
+              { id: 'followup', label: '🤝 Follow Up & Audiensi' },
             ].map((f) => (
               <button
                 key={f.id}
                 onClick={() => setRecFilter(f.id)}
                 className={`px-3 py-1.5 rounded-xl font-semibold transition-all cursor-pointer shrink-0 ${
                   recFilter === f.id
-                    ? 'bg-emerald-600 text-white shadow-xs'
+                    ? 'bg-[#004a87] text-white shadow-xs'
                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
@@ -492,7 +490,7 @@ export default function TemplatesPage() {
                   <button
                     type="button"
                     onClick={() => handleAddRecommended(rec)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#004a87] hover:bg-[#003866] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                   >
                     {addedId === rec.id ? <Check className="w-3.5 h-3.5 text-white" /> : <BookmarkPlus className="w-3.5 h-3.5" />}
                     {addedId === rec.id ? 'Tersimpan!' : 'Pakai Template Ini'}
@@ -533,33 +531,32 @@ export default function TemplatesPage() {
               {/* Parameters */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Tujuan Penawaran:</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Tujuan Program:</label>
                   <select
                     value={aiCategory}
                     onChange={(e) => setAiCategory(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-emerald-500 cursor-pointer font-medium"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-[#004a87] cursor-pointer font-medium"
                   >
-                    <option value="app_offer">📱 Penawaran Aplikasi Kita (Free Trial + Bantuan)</option>
-                    <option value="new_web">Website Baru (Tanpa Web)</option>
-                    <option value="redesign">Redesain & Upgrade Web</option>
-                    <option value="followup">Follow Up Prospek</option>
-                    <option value="promo">Promo Diskon Kilat</option>
-                    <option value="consultation">Audit & Konsultasi Gratis</option>
+                    <option value="after_school">🚀 After School Remote Work Accelerator</option>
+                    <option value="school_partnership">🏫 Kemitraan Resmi B2B Sekolah (Setup Rp 0)</option>
+                    <option value="website_ppdb">🌐 Website Resmi Sekolah & PPDB Online</option>
+                    <option value="attendance_hris">📱 Absensi Mobile Guru & HRIS Geofencing</option>
+                    <option value="bundling">📦 Paket Bundling Transformasi Sekolah Digital</option>
+                    <option value="followup">🤝 Follow Up Proposal & Jadwal Audiensi</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Target Industri:</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Target Institusi:</label>
                   <select
                     value={aiIndustry}
                     onChange={(e) => setAiIndustry(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-emerald-500 cursor-pointer font-medium"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-[#004a87] cursor-pointer font-medium"
                   >
-                    <option value="general">Umum / Semua Bisnis</option>
-                    <option value="fnb">Kuliner / Resto / Cafe</option>
-                    <option value="health">Klinik & Kesehatan</option>
-                    <option value="service">Jasa / Salon / Bengkel</option>
-                    <option value="property">Kos / Properti / Hotel</option>
+                    <option value="school">Sekolah Umum (SMP / SMA / SMK)</option>
+                    <option value="vocational">SMK / Kejuruan (Siap Kerja & Magang Remote)</option>
+                    <option value="course">Lembaga Kursus / Bimbel / Yayasan</option>
+                    <option value="general">Umum / Semua Institusi Pendidikan</option>
                   </select>
                 </div>
 
@@ -568,12 +565,12 @@ export default function TemplatesPage() {
                   <select
                     value={aiTone}
                     onChange={(e) => setAiTone(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-emerald-500 cursor-pointer font-medium"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:border-[#004a87] cursor-pointer font-medium"
                   >
-                    <option value="friendly">Ramah & Hangat (Casual)</option>
-                    <option value="professional">Profesional & Sopan</option>
-                    <option value="direct">To The Point (Singkat)</option>
-                    <option value="urgent">Urgensi & Diskon (FOMO)</option>
+                    <option value="professional">Profesional & Sopan (Pimpinan / TU)</option>
+                    <option value="friendly">Ramah & Edukatif (Guru BK / Orang Tua)</option>
+                    <option value="direct">To The Point (Singkat & Jelas)</option>
+                    <option value="urgent">Kuota Kemitraan Terbatas (FOMO)</option>
                   </select>
                 </div>
               </div>
