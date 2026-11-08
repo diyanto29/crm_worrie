@@ -8,6 +8,7 @@ interface ScrapeRequest {
   location: string;
   max_results?: number;
   wa_only?: boolean;
+  google_places_api_key?: string;
 }
 
 // City code dictionary for Indonesian landlines
@@ -367,25 +368,43 @@ export async function POST(req: Request) {
 
     let allPlaces: any[] = [];
 
-    // 1. Check Google Places API Key if configured
-    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    // 1. Check Google Places API Key if configured (from body or env)
+    const apiKey = body.google_places_api_key?.trim() || process.env.GOOGLE_PLACES_API_KEY;
     if (apiKey) {
       try {
-        const query = encodeURIComponent(`${cleanKw} ${cleanLoc}`);
+        const query = encodeURIComponent(`${cleanKw} di ${cleanLoc}`);
         const response = await fetch(
           `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&key=${apiKey}&language=id`
         );
         const data = await response.json();
 
         if (data.results && data.results.length > 0) {
-          for (const place of data.results) {
-            const rawPhone = place.formatted_phone_number;
+          const topPlaces = data.results.slice(0, count);
+
+          // Enrich details in parallel to obtain direct phone & website
+          const enriched = await Promise.all(
+            topPlaces.map(async (place: any) => {
+              try {
+                if (!place.place_id) return place;
+                const detRes = await fetch(
+                  `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_phone_number,international_phone_number,website,url,rating,user_ratings_total,formatted_address,types&key=${apiKey}&language=id`
+                );
+                const detData = await detRes.json();
+                return { ...place, ...(detData.result || {}) };
+              } catch {
+                return place;
+              }
+            })
+          );
+
+          for (const place of enriched) {
+            const rawPhone = place.formatted_phone_number || place.international_phone_number;
             const validMobile = extractValidWhatsApp(rawPhone || '');
             const validLandline = !validMobile ? extractLandline(rawPhone || '') : null;
             const phone = validMobile || validLandline || rawPhone || null;
             const isWhatsApp = Boolean(validMobile);
 
-            if (wa_only && !isWhatsApp) continue;
+            if (wa_only && !isWhatsApp && allPlaces.length > 0) continue;
 
             const address = place.formatted_address || `${place.name}, ${cleanLoc}`;
             const rating = place.rating || null;

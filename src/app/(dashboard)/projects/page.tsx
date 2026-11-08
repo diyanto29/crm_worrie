@@ -16,7 +16,8 @@ import {
   Compass,
   AlertCircle,
   CheckCircle2,
-  PhoneCall
+  PhoneCall,
+  Key
 } from 'lucide-react';
 import ExtractProgressModal from '@/components/ExtractProgressModal';
 import { DataStore } from '@/lib/dataStore';
@@ -33,6 +34,8 @@ export default function ProjectsPage() {
   const [location, setLocation] = useState('');
   const [maxResults, setMaxResults] = useState(20);
   const [waOnly, setWaOnly] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [showApiSettings, setShowApiSettings] = useState(false);
 
   // Modal extraction state
   const [isExtracting, setIsExtracting] = useState(false);
@@ -44,6 +47,13 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     loadCampaigns();
+    if (typeof window !== 'undefined') {
+      const savedKey = localStorage.getItem('google_places_api_key') || '';
+      if (savedKey) {
+        setApiKey(savedKey);
+        setShowApiSettings(true);
+      }
+    }
   }, []);
 
   async function loadCampaigns() {
@@ -94,6 +104,7 @@ export default function ProjectsPage() {
           location: location.trim(),
           max_results: maxResults,
           wa_only: waOnly,
+          google_places_api_key: apiKey.trim() || undefined,
         }),
       });
 
@@ -277,6 +288,70 @@ export default function ProjectsPage() {
               }`}>
                 {waOnly ? 'Khusus WA' : 'Semua Kontak'}
               </span>
+            </div>
+
+            {/* Google Places API Key Option */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setShowApiSettings(!showApiSettings)}
+                  className="flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-[#004a87] transition-colors cursor-pointer"
+                >
+                  <Key className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Google Places / Maps API Key (Opsional)</span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    {showApiSettings ? '(Sembunyikan)' : '(Buka Pengaturan)'}
+                  </span>
+                </button>
+                {apiKey.trim() ? (
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200">
+                    🟢 Google API Aktif
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-semibold text-slate-500 bg-slate-200/60 px-2 py-0.5 rounded-full">
+                    ⚡ Mode Direktori Geografis (Tanpa API Key)
+                  </span>
+                )}
+              </div>
+
+              {showApiSettings && (
+                <div className="pt-2 border-t border-slate-200/70 space-y-1.5 animate-in fade-in duration-200">
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Tempelkan API Key Google Maps / Google Places Anda di bawah ini untuk mengambil 100% data resmi langsung dari server Google (Place ID, Rating akurat, No HP/Telepon kantor resmi, dan Website).
+                  </p>
+                  <input
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setApiKey(val);
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('google_places_api_key', val.trim());
+                      }
+                    }}
+                    placeholder="AIzaSy..."
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-slate-900 text-xs font-mono focus:outline-none focus:border-[#004a87] transition-colors"
+                  />
+                  <div className="flex items-center justify-between text-[10px] text-slate-400">
+                    <span>Tersimpan otomatis di browser & aman.</span>
+                    {apiKey.trim() && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setApiKey('');
+                          if (typeof window !== 'undefined') {
+                            localStorage.removeItem('google_places_api_key');
+                          }
+                        }}
+                        className="text-rose-600 hover:underline cursor-pointer"
+                      >
+                        Hapus Key
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="pt-2 flex justify-end">
